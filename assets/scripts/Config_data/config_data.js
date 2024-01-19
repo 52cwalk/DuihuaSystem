@@ -1,6 +1,5 @@
 var storage_con = require("storage_con");
 var global = require("globalSetting");
-var historyConSystem = require("historyConSystem");
 
 var config_data = cc.Class({
     extends: cc.Component,
@@ -27,16 +26,38 @@ var config_data = cc.Class({
     },
     loadConfig()
     {
+        /*
+        this.allConfigData = JSON.parse(this.jsonData.text);
+        this.currentNodeId = this.allConfigData.startNodeId;
+        this.dialogueConfigData =  this.allConfigData.chapterContents;
+        */
         
-        
+//var selectActorId = 1000;
+//var selectChapterId = 3000;
 
+/*
+        var jsonName = global.selectActorId+"_"+global.selectChapterId;
+        cc.loader.loadRes('config/actordialogue/'+jsonName, function (err, object) {
+            if (err) {
+                console.log(err);
+                if(!!callbackfunc)
+                {
+                    callbackfunc(-1);
+                }
+                return;
+            }
 
+            //console.log("   console.log( object.json); is called ");
+            //console.log( object.json);
+            that.allConfigData = object.json;
+            that.currentNodeId = that.allConfigData.startNodeId;
+            that.dialogueConfigData =  that.allConfigData.chapterContents;
+        });
+*/
 
-
-
-        
-        
-        
+        // console.log("allConfigData");
+        // console.log(this.allConfigData);
+        // console.log(this.dialogueConfigData);
     },
     getCurrentNodeConfigById(id)
     {
@@ -49,6 +70,10 @@ var config_data = cc.Class({
     },
     getCurrentNodeConfig()
     {
+        console.log("getCurrentNodeConfig is called ");
+        console.log(this.currentNodeId);
+        console.log(this.dialogueConfigData);
+
         return this.dialogueConfigData[this.currentNodeId];
     },
     getNextConfig()
@@ -75,7 +100,12 @@ var config_data = cc.Class({
         var ncof = this.dialogueConfigData[this.currentNodeId];
         var config = {};
 
-        
+        /*
+        "actor": "1001",
+        "actorName": "周棋洛",
+        "chapter": "3002",
+        "chapterName": "02男主分线",
+        */
 
         config.actor = this.allConfigData.actor;
         config.actorName = this.allConfigData.actorName;
@@ -121,7 +151,7 @@ var config_data = cc.Class({
         var actorid = global.selectActorId;
         var chapterId = global.selectChapterId;
         var cname = actorid.toString()+"_"+(chapterId).toString();
-        
+        //global.selectChapterId++;
         this.loadConfigActor(cname,callbackfunc);
     },
     handleFeatureConfig()
@@ -137,6 +167,8 @@ var config_data = cc.Class({
     {
         var lastestConfig = storage_con._instance.getLastestNodeConfig();
 
+        console.log("handleLastestConfig is ");
+        console.log(lastestConfig);
         if(!!lastestConfig && !!lastestConfig.currentNodeId)
         {
             global.selectActorId = lastestConfig.actor;
@@ -155,69 +187,7 @@ var config_data = cc.Class({
             chapteritemobj.getComponent("archiveChapterItem").initItem(key,global.chapterDic[key]);
             chapteritemobj.getComponent("archiveChapterItem").setArchiveCon(this.node);
         }
-    },
-    getSkip()
-    {
-        var currentid =  this.currentNodeId;
-        var skipNodeConfig = this.getNextSkipNode(currentid,currentid);
-        console.log("skipNodeConfig is called ");
-        console.log(skipNodeConfig);
-        this.currentNodeId = skipNodeConfig.nodeId;
-        this.saveLastestConfig();
-    },
-    getNextSkipNode(nid,skipNodeId)
-    {
-        var nconfig = this.dialogueConfigData[nid];
-        
-        if(nconfig.nodeType ==  global.nodeType.QuestionAndInputAnswer||
-            nconfig.nodeType ==  global.nodeType.MultiChoices||
-            nconfig.nodeType ==  global.nodeType.GotoFeatureScene)
-            {
-                return nconfig;
-            }
-            else if(nconfig.nodeType ==  global.nodeType.JudgeCondition)
-            {
-                var conditions = nconfig.judgeConditionData.conditions;
-
-                console.log("judgeConditionData is condition is ");
-                console.log(conditions);
-                
-                var isValid = storage_con._instance.checkIsHaveRewards(conditions);
-                if(isValid)
-                {
-                    console.log("yes, 你的条件是正确的�?)
-                    var validNextId = nconfig.judgeConditionData.conditionBranch.yesNextNodeId;
-                    return this.getNextSkipNode(validNextId,skipNodeId);
-                }
-                else
-                {
-                    console.log("no, 你的条件是错误的�?)
-                    var invalidNextId = nconfig.judgeConditionData.conditionBranch.noNextNodeId;
-                    return this.getNextSkipNode(invalidNextId,skipNodeId);
-                }
-            }
-        else
-        {
-            var nNextConfig = this.dialogueConfigData[nconfig.nextNodeId];
-            
-            if(nNextConfig.nodeType== global.nodeType.Over ||nNextConfig.nodeType== global.nodeType.SubOver)
-            {
-                return nNextConfig;
-            }
-            else
-            {
-                if(nconfig.nodeType== global.nodeType.Dialogue && skipNodeId != nconfig.nodeId)
-                {
-              
-              
-                    historyConSystem._instance.addHisItemBySkip( nconfig );
-                }
-                return this.getNextSkipNode(nconfig.nextNodeId,skipNodeId);
-            }
-        }
-        
-    },
-   
+    }
 });
 
 module.exports = config_data

@@ -3,11 +3,10 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        rotationEnable:true
+        
     },
     start () {
         var that = this;
-     
         this.node.on(cc.Node.EventType.TOUCH_START, function(e){that.movestart(e)}, this.node);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, function(e){that.moving(e)}, this.node);
         this.node.on(cc.Node.EventType.TOUCH_END, function(e){that.movend(e)}, this.node);
@@ -16,10 +15,6 @@ cc.Class({
         console.log("  this.currentNodePos  ");
         console.log(  this.currentNodePos );
     },
-    setRotationEnable(v)
-    {
-        this.rotationEnable = v;
-    },
     initEvent(update,end)
     {
         this.updateEvent = update;
@@ -27,58 +22,66 @@ cc.Class({
     },
     movestart(event)
     {
-        if(!this.rotationEnable)
-        {
-            return;
-        }
         var point = event.touch._point;
         this.xx = point.x;
         this.yy = point.y;
         var touchpoint= event.touch.getLocation();
-        this.prePoint = touchpoint;
+        this.prePoint = touchpoint;//cc.v2(touchpoint.x-worldPos.x,touchpoint.y-worldPos.y) ;
     },
     rotateNode(position){
-        
-       
+       // var worldPos = this.node.convertToWorldSpaceAR(this.node.position);
         var dis  = this.currentNodePos.sub(position);
         var atan2Angle = Math.atan2(dis.y,dis.x);
-        var angle = atan2Angle/Math.PI*180 + 90;
-        
+        var angle = atan2Angle/Math.PI*180 - 180;
+        //var angle = Math.floor(angle -180);
         this.node.angle = angle;
 
         var dis1 = this.prePoint.sub(this.currentNodePos);
         var dis2 = position.sub(this.currentNodePos);
 
-       
+       // var deltaAngle = this.angleByTwoVec(dis1,dis2) ;
 
         this.prePoint = position;
         
         var angle = dis1.signAngle(dis2);
-        
+        //将弧度转换为欧拉角
         var deltaAngle = angle / Math.PI * 180;
 
-
-
+      //  console.log(deltaAngle)
+        
         if(!!this.updateEvent)
         {
             this.updateEvent(deltaAngle);
         }
     },
-    
+    /*
+    rotateNode(position){
+        // var worldPos = this.node.convertToWorldSpaceAR(this.node.position);
+         var dis  = this.currentNodePos.sub(position);
+         var atan2Angle = Math.atan2(dis.y,dis.x);
+         var angle = atan2Angle/Math.PI*180 - 180;
+         //var angle = Math.floor(angle -180);
+         this.node.angle = angle;
+ 
+         var dis1 = this.prePoint.sub(this.currentNodePos);
+         var dis2 = position.sub(this.currentNodePos);
+ 
+         var deltaAngle = this.angleByTwoVec(dis1,dis2) ;
+ 
+         this.prePoint = position;
+         if(!!this.updateEvent)
+         {
+             this.updateEvent(deltaAngle);
+         }
+     },
+     */
     moving(event)
     {
-        if(!this.rotationEnable)
-        {
-            return;
-        }
         this.rotateNode(event.touch.getLocation());
+       
     },
     movend(et)
     {
-        if(!this.rotationEnable)
-        {
-            return;
-        }
        if(!!this.endEvent)
        {
         this.endEvent();
@@ -98,4 +101,3 @@ cc.Class({
     }
 
 });
-

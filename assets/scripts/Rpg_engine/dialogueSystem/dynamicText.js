@@ -4,7 +4,7 @@ cc.Class({
     properties: {
         dialogueLabel:cc.Label
     },
-    
+    // LIFE-CYCLE CALLBACKS:
     onLoad () {
         this._isCompleted = true;
         this.dialogueText = "";
@@ -92,10 +92,9 @@ cc.Class({
         this.dialogueLabel.string = "";
         this._isCCompleted = true;
         this.dialogueText = "";
-      
+      //  clearInterval(this.interValHandle);
         this.interValHandle = null;
     }
 
-    
+    // update (dt) {},
 });
-

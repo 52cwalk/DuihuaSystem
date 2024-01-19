@@ -2,9 +2,10 @@ var dialogueBase = require("dialogueBase");
 var storage_con = require("storage_con");
 var global = require("globalSetting");
 var historyConSystem = require("historyConSystem");
-var reward_con = require("reward_con");
+
 cc.Class({
     extends: dialogueBase,
+
     properties: {
         dialogueBg:cc.Node,
         dynamicText:cc.Node,
@@ -18,10 +19,6 @@ cc.Class({
         this.dIndex = 0;
         this.isShow = false;
     },
-    initDialogueTextCon(obj)
-    {
-        this.dialogueTexConObj = obj;
-    },
     initEvent(ev,dynamicEndEvent)
     {
         this.progressOverEvent=ev;
@@ -33,30 +30,30 @@ cc.Class({
     execute()
     {
         this.node.active = true;
-        if(this.isShow)
+        if(this.isShow)//正在显示
         {
             if(this.dIndex>=this.dataConfig.dialogueData.dialogueContents.length)
             {
                 var isCompleted = this.dynamicText.getComponent("dynamicText").isCompleted();
-                if(isCompleted)
+                if(isCompleted)//条件满足可以进行打字效果
                 {
                     if(!!this.progressOverEvent )
                     {
-                        this.checkConfigTrailConfig();
+                        this.checkConfigTrailConfig();//完善配置表中需要的成就，判断条件等
                         this.progressOverEvent (this.node);
                         return;
                     }
                 }
-                else
+                else//结束打印效果
                 {
                     this.dynamicText.getComponent("dynamicText").lockText();
                 }
             }
             else
             {
-                
+                //显示打字机效果
                 var isCompleted = this.dynamicText.getComponent("dynamicText").isCompleted();
-                if(isCompleted)
+                if(isCompleted)//条件满足可以进行打字效果
                 {
                     var tContent = this.dataConfig.dialogueData.dialogueContents[this.dIndex];
                     if(!!tContent)
@@ -65,15 +62,10 @@ cc.Class({
                     }
                     
                     this.dynamicText.getComponent("dynamicText").showText(tContent);
-              
-                    if(!!!historyConSystem)
-                    {
-                        historyConSystem = require("historyConSystem");
-                    }
-                    historyConSystem._instance.showContentByIndex( this.dataConfig.nodeId, this.dIndex);
+                    historyConSystem._instance.showContentByIndex( this.dataConfig.nodeId, this.dIndex);//添加回顾记录
                     this.dIndex ++;
                 }
-                else
+                else//结束打印效果
                 {
                     this.dynamicText.getComponent("dynamicText").lockText();
                 }
@@ -81,12 +73,9 @@ cc.Class({
         }
         else
         {
-            this.node.scale = cc.v2(1,0.5);
-            this.showAction = cc.scaleTo(0.15, 1, 1);
-            
+            this.showAction = cc.scaleTo(0.2, 1, 1);
             this.node.runAction(cc.sequence(
                 this.showAction,
-                
                 cc.callFunc(this.showCompeleted.bind(this))
             ));
         }
@@ -94,7 +83,7 @@ cc.Class({
     },
     setConfig(dataConfig)
     {
-     
+     //   console.log("setConfig data is coming ");
         this.dataConfig = dataConfig;
         if(!! this.nickNameLabel)
         {
@@ -102,59 +91,33 @@ cc.Class({
             var sindex = this.getNameFrameByNickName(this.dataConfig.actorId);
             this.nickNameFrameObj.getComponent(cc.Sprite).spriteFrame = this.nicknameSpriteFrames[sindex];
         }
-        this.checkSelfHeadSprite();
         var bgTypeIndex =  global.getDialogueBgByName(this.dataConfig.actorId);
         this.dialogueBg.getComponent(cc.Sprite).spriteFrame = this.spriteFrames[bgTypeIndex];
-        historyConSystem._instance.addHisItemByConfig( this.dataConfig );
-     
-    },
-    checkSelfHeadSprite()
-    {
-        var actorStatusId = "";
-        if(!!this.dataConfig.actorStatusId)
-        {
-            actorStatusId = this.dataConfig.actorStatusId.trim();
-        }
-        if(this.dataConfig.actorId.trim() == "$u" && !!this.headImgObj)
-        {
-            var headsprite = this.dialogueTexConObj.getComponent("dialogureTextCon").getSelfHeadSprite(actorStatusId);
-            if(!!headsprite)
-            {
-                this.headImgObj.getComponent(cc.Sprite).spriteFrame = headsprite;
-            }
-        }
+        historyConSystem._instance.addHisItemByConfig( this.dataConfig );//添加回顾记录
+     //   console.log(this.dataConfig);
     },
     getNameFrameByNickName(v)
     {
         var spriteindex =0;
-        if(v.trim() == "zqdd�?)
+        if(v.trim() == "周棋洛")
         {
             spriteindex = 0;
-        }else if(v.trim() == "li四")
+        }else if(v.trim() == "李泽言")
         {
             spriteindex = 1;
-        }else if(v.trim() == "张三")
+        }else if(v.trim() == "白起")
         {
             spriteindex = 2;
-        }else if(v.trim() == "xdft")
+        }else if(v.trim() == "许墨")
         {
             spriteindex = 3;
         }
         else if(v.trim() == "$u")
         {
             spriteindex = 4;
-        }
-        else if(v.trim() == "�张三起")
-        {
-            spriteindex = 4;
-        }
-        else if(v.trim() == "凌肖")
+        }else if(!!v)
         {
             spriteindex = 5;
-        }
-        else if(!!v)
-        {
-            spriteindex = 6;
         }
         return spriteindex;
     },
@@ -169,31 +132,31 @@ cc.Class({
         this.dIndex = 0;
         this.isShow  = false;
         this.dynamicText.getComponent("dynamicText").close();
+      
     },
-    
+    //完善配置表中需要的成就，判断条件等
     checkConfigTrailConfig()
     {
         var bags = this.dataConfig.dialogueData.bags;
         if(!!bags&&bags.length>0)
         {
-            reward_con._instance.addRewards(bags);
+            storage_con._instance.setRewards(bags,true);//批量更新本地存储数据
         }
 
         var conditions = this.dataConfig.dialogueData.extraData.conditions;
         if(!!conditions&&conditions.length>0)
         {
-            var isRight = storage_con._instance.checkIsHaveRewards(conditions);
+            var isRight = storage_con._instance.checkIsHaveRewards(conditions);//获取判断条件
             if(isRight)
             {
                 var ebags = this.dataConfig.dialogueData.extraData.bags;
                 if(!!ebags&&ebags.length>0)
                 {
-                    reward_con._instance.addRewards(ebags);
+                    storage_con._instance.setRewards(ebags,true);//批量更新本地存储数据
                 }
             }
         }
     }
 
-    
+    // update (dt) {},
 });
-

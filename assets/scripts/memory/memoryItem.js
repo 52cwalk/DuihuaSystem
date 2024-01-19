@@ -1,4 +1,5 @@
 var storage_con  = require("storage_con");
+
 cc.Class({
     extends: cc.Component,
 
@@ -6,11 +7,11 @@ cc.Class({
         titleLabel:cc.Label,
         headsprite:cc.Sprite,
         lockItemObj:cc.Node,
-        newSpriteObj:cc.Node,
         mode:0
     },
     onLoad()
     {
+        this.isActive = false;
     },
     start () {
     },
@@ -34,41 +35,26 @@ cc.Class({
         
         var that = this;
         cc.loader.loadRes(pathPre+this.dataconfig.bagThumb, cc.SpriteFrame, function(err, ret) {
-                        if (err) {
-                        }
-                        else
-                        {
-                            that.headsprite.spriteFrame = ret;
-                        }
-
-                      
+                        if (err) {
+                        }
+                    that.headsprite.spriteFrame = ret;
+                      //  this.sprite.spriteFrame = cc.loader.getRes("img/disk", cc.SpriteFrame);
         }.bind(this));
 
-        var bagv= storage_con._instance.getReward(this.dataconfig.bagId);
-        if(!!bagv)
+        var bagitem= storage_con._instance.getReward(this.dataconfig.bagId);
+        if(!!bagitem)
         {
             this.isActive = true;
-            if(bagv == 1)
-            {
-                this.newSpriteObj.active = true;
-                this.memoryCon.getComponent("memoryCon").activeActorNewStatus(this.dataconfig.bagActor);
-            }
-            this.lockItemObj.active = false;
         }
         else{
             this.lockItemObj.active = true;
-            this.isActive = false;
         }
     },
     itemClick()
-    {   
+    {
         if(this.isActive)
         {
-            storage_con._instance.setReward(this.dataconfig.bagId,2);
-            this.memoryCon.getComponent("memoryCon").selectMemoryItem(this.dataconfig,this.headsprite.spriteFrame);
-            this.memoryCon.getComponent("memoryCon").checkActorNewStatus(this.dataconfig.bagActor);
-            this.newSpriteObj.active = false;
+            this.memoryCon.getComponent("memoryCon").selectMemoryItem(this.dataconfig);
         }
     }
 });
-

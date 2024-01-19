@@ -6,7 +6,7 @@ var RPG_Engine = cc.Class({
        
     },
 
-    
+    // LIFE-CYCLE CALLBACKS:
 
     statics:{
         _instance:null
@@ -18,9 +18,8 @@ var RPG_Engine = cc.Class({
     start () {
         
     }
-    
+    // update (dt) {},
 });
 
 module.exports = RPG_Engine
-
 

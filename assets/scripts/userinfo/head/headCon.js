@@ -12,7 +12,7 @@ cc.Class({
         userInfoPanelObj:cc.Node
     },
 
-    
+    // LIFE-CYCLE CALLBACKS:
 
      onLoad () {
         this.currentActiveNode = null;
@@ -34,13 +34,13 @@ cc.Class({
             });
         }
 
-        
-        
-        
-        
-        
-        
-        
+        // var actorDic = {
+        //     "1000":"公共",
+        //     "1001":"周棋洛",
+        //     "1002":"李泽言",
+        //     "1003":"白起",
+        //     "1004":"许墨"
+        // }
 
         for (var akey in this.configData) {
             var index = parseInt(akey)%1000;
@@ -73,7 +73,7 @@ cc.Class({
 
                         }
                     that.previewHeadSprite.spriteFrame = ret;
-                      
+                      //  this.sprite.spriteFrame = cc.loader.getRes("img/disk", cc.SpriteFrame);
         }.bind(this));
     },
     selectArchiveActor(obj,id)
@@ -87,7 +87,7 @@ cc.Class({
         this.currentSelectActorIndex = index;
         this.actorId = id;
 
-        
+        //console.log("");
         if(this.currentSelectContainerIndex !=index)
         {
            this.headContainerArr[this.currentSelectContainerIndex].active = false; 
@@ -105,6 +105,5 @@ cc.Class({
         }
     }
 
-    
+    // update (dt) {},
 });
-

@@ -1,15 +1,12 @@
 
 var global = require("globalSetting");
-var config_data = require("config_data");
-var storage_con = require("storage_con");
 var historyConSystem =cc.Class({
     extends: cc.Component,
 
     properties: {
         mainObj:cc.Node,
         historyPlotItemPrefab:cc.Prefab,
-        parentObj:cc.Node,
-        scrollView:cc.ScrollView
+        parentObj:cc.Node
     },
     statics:{
         _instance:null
@@ -17,72 +14,20 @@ var historyConSystem =cc.Class({
     onLoad()
     {
         historyConSystem._instance = this;
-        this.objectDic = Object.create(null);
+        this.objectDic = Object.create(null);//创建一个字典
     },
     start () {
-        var config = storage_con._instance.getLastestContent(config);
-        if(!!config)
-        {
-            if(global.isRecoverLastNode)
-            {
-                console.log("继续保持了相对的节点�?);
-                if(!!config.contents&&config.contents.length>0)
-                {
-                    global.localHistoryPlotDic = config.contents;
-                    global.localHistoryPlotDic.pop();
-                    this.initByLocalConfig();
-                }
-            }
-            else if(global.isFeatureMode)
-            {
-                console.log("从特殊场景返�?!!");
-                if(!!config.contents&&config.contents.length>0)
-                {
-                    global.localHistoryPlotDic = config.contents;
-                    this.initByLocalConfig();
-                }
-            }
-            else
-            {
-                console.log("清空了最近的记录的节�?);
-                storage_con._instance.clearLastestContent();
-                global.localHistoryPlotDic=[];
-            }
-        }
-        else
-        {
-            global.localHistoryPlotDic=[];
-        }
-        this.mainObj.opacity = 0;
+            //this.node.on(cc.Node.EventType.TOUCH_END, this.triggerClick, this);
+            this.initByLocalConfig();//加载从本地缓存读取的内容
     },
-    saveLastestContent()
-    {
-        var config = {};
-        config.actor = global.selectActorId;
-        config.chapter = global.selectChapterId;
-        config.contents= global.localHistoryPlotDic;
-        storage_con._instance.saveLastestContent(config);
-    },
-
     addHisItemByConfig(config)
     {
-    
+    //var str = this.dataConfig.dialogueData.dialogueContents[index];
         var contentLabelObj = cc.instantiate(this.historyPlotItemPrefab);
         contentLabelObj.parent = this.parentObj;
         contentLabelObj.getComponent("historyPlotItem").setConfig(config);
         this.objectDic[config.nodeId] = contentLabelObj;
-        global.localHistoryPlotDic.push(config);
-        this.saveLastestContent();
-    },
-    addHisItemBySkip(config)
-    {
-    
-        var contentLabelObj = cc.instantiate(this.historyPlotItemPrefab);
-        contentLabelObj.parent = this.parentObj;
-        contentLabelObj.getComponent("historyPlotItem").initByLocalConfig(config);
-        this.objectDic[config.nodeId] = contentLabelObj;
-        global.localHistoryPlotDic.push(config);
-        this.saveLastestContent();
+        global.historyPlotDic.push(config);
     },
     showContentByIndex(nid,idx)
     {
@@ -97,36 +42,27 @@ var historyConSystem =cc.Class({
         for (var key in this.objectDic) {
             this.objectDic[key].destroy();
         }
-        this.objectDic = Object.create(null);
-        storage_con._instance.clearLastestContent();
-        global.localHistoryPlotDic = [];
+        this.objectDic = Object.create(null);//创建新的字典
+        global.historyPlotDic = [];//清空主菜单
     },
     show()
     {
         this.mainObj.active = true;
-        this.scrollView.scrollToBottom(0.1);
-
-        this.scheduleOnce(()=>{ 
-            this.mainObj.opacity = 255;
-        
-          
-         },0.15);
     },
     close()
     {
-        this.mainObj.opacity = 0;
         this.mainObj.active = false;
     },
     initByLocalConfig()
     {
-        if(global.localHistoryPlotDic.length>0)
+        if(global.historyPlotDic.length>0)
         {
-            for(var i = 0;i!=global.localHistoryPlotDic.length;i++)
+            for(var i = 0;i!=global.historyPlotDic.length;i++)
             {
                 var contentLabelObj = cc.instantiate(this.historyPlotItemPrefab);
                 contentLabelObj.parent = this.parentObj;
-                contentLabelObj.getComponent("historyPlotItem").initByLocalConfig(global.localHistoryPlotDic[i]);
-                this.objectDic[global.localHistoryPlotDic[i].nodeId] = contentLabelObj;
+                contentLabelObj.getComponent("historyPlotItem").initByLocalConfig(global.historyPlotDic[i]);
+                this.objectDic[global.historyPlotDic[i].nodeId] = contentLabelObj;
             }
         }
     }
@@ -134,5 +70,4 @@ var historyConSystem =cc.Class({
 
 
 module.exports = historyConSystem
-
 

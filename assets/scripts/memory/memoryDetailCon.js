@@ -6,24 +6,22 @@ cc.Class({
         mainObj:cc.Node,
         maskObj:cc.Node,
         titleLabel:cc.Label,
-        contentLabel:cc.Label,
-        previewSprite:cc.Sprite
+        contentLabel:cc.Label
     },
 
-    
+    // LIFE-CYCLE CALLBACKS:
 
-    
+    // onLoad () {},
 
     start () {
 
     },
-    show(cfg,sf)
+    show(cfg)
     {
         this.maskObj.active = true;
         this.mainObj.active = true;
         this.contentLabel.string = cfg.bagContent;
         this.titleLabel.string = cfg.bagTitle;
-        this.previewSprite.spriteFrame = sf;
     },
     close()
     {
@@ -31,6 +29,5 @@ cc.Class({
         this.maskObj.active = false;
     }
     
-    
+    // update (dt) {},
 });
-

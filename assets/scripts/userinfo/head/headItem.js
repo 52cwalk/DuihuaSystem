@@ -18,7 +18,7 @@ cc.Class({
 
                         }
                     that.headsprite.spriteFrame = ret;
-                      
+                      //  this.sprite.spriteFrame = cc.loader.getRes("img/disk", cc.SpriteFrame);
         }.bind(this));
 
     },
@@ -28,4 +28,3 @@ cc.Class({
     }
     
 });
-

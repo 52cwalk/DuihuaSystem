@@ -4,7 +4,7 @@ var bgSwitchCon = require("bgSwitchCon");
 var TipCon = require("TipCon");
 var historyConSystem = require("historyConSystem");
 var storage_con  = require("storage_con");
-var musicCon = require("musicCon");
+
 var dialogueSystem =cc.Class({
     extends: cc.Component,
 
@@ -14,9 +14,7 @@ var dialogueSystem =cc.Class({
         inputDialogueConObj:cc.Node,
         mulitSelectDialogueConObj:cc.Node,
         judgeDialogueConObj:cc.Node,
-        dialogueUIConObj:cc.Node,
-        dialogueLoadingCon:cc.Node,
-        dialogueOverCon:cc.Node
+        dialogueUIConObj:cc.Node
     },
     statics:{
         _instance:null
@@ -29,34 +27,16 @@ var dialogueSystem =cc.Class({
         this.dialogueUIConObj.getComponent("dialogueUICon").updateAutoPlayUI(this.isAutoPlay);
         this.node.on(cc.Node.EventType.TOUCH_END, this.triggerClick, this);
         this.isFirstEnter = true;
-        this.intervalTime = 300;
     },
     start () {
         this.currentDialogueNodeOver = true;
-        this.currentChapterOver = false;
-     
+     //   this.initActorAndChapter();//初始化男主和章节
         var jsonName = global.selectActorId+"_"+global.selectChapterId;
         console.log("jsonName is called is " + jsonName);
         this.loadChapterByTargetName(jsonName);
         this.isEnableTouch=true;
-
-        var newConfigData = storage_con._instance.getNewNodeConfig( global.selectActorId);
-
-        if(!!newConfigData)
-        {
-            if(newConfigData.chapter == global.selectChapterId )
-            {
-                storage_con._instance.clearNewNodeConfig(global.selectActorId);
-            }
-        }
-
-        if(global.selectChapterId ==  global.publicEndChapterId)
-        {
-            storage_con._instance.addFinishedActor(global.selectActorId);
-            storage_con._instance.saveLastPublicNewConfig(2);
-        }
-
-        this.preTime= Date.now();
+        console.log( "global.userBaseInfo");
+        console.log( global.userBaseInfo);
     },
     initActorAndChapter()
     {
@@ -72,38 +52,27 @@ var dialogueSystem =cc.Class({
             global.selectChapterId = 2001;
         }
     },
-    triggerClick (event) {
+    triggerClick (event) {//点击触发下一步操作逻辑
         if(!this.isEnableTouch)
         {
             return;
         }
-        var currentTime = Date.now();
-        var ccstime = currentTime - this.preTime;
-        if(ccstime<this.intervalTime)
-        {
-            return;
-        }
-        this.preTime = currentTime;
-        this.stopAutoPlay();
+        this.isAutoPlay = false;
+        global.isAutoPlay = false;
+        this.dialogueUIConObj.getComponent("dialogueUICon").stopAutoPlay();
+
         this.next();
-    },
-    isAutoPlaying()
-    {
-        return this.isAutoPlay;
     },
     printAnimEndFunc()
     {
         if(this.isAutoPlay)
         {
             this.scheduleOnce(()=>{ 
-                if(this.isAutoPlay)
-                {
-                    this.autoPlayNext();
-                }
+                this.autoPlayNext();
              },0.5);
         }
     },
-    
+    //切换对话框模式
     currentDialogueEndFunc()
     {
         if(this.isAutoPlay)
@@ -128,26 +97,6 @@ var dialogueSystem =cc.Class({
         this.currentDialogueConfig = config_data._instance.getCurrentNodeConfigById(id);
         this.next();
     },
-    
-    gotoMultiSelectBranchById(id)
-    {
-        this.isAutoPlay = false;
-        global.isAutoPlay = false;
-        this.dialogueUIConObj.getComponent("dialogueUICon").stopAutoPlay();
-        
-        console.log("global.branchStr is called " + global.branchStr);
-        var isEnableSkip = storage_con._instance.checkActorSkipRecord(global.selectActorId,global.selectChapterId,global.branchStr);
-        if(!isEnableSkip)
-        {
-            this.dialogueUIConObj.getComponent("dialogueUICon").setSkipEnabled(false);
-        }
-        
-        storage_con._instance.saveRecoverSkipStatus(global.branchStr);
-        
-        this.currentDialogueNodeOver = true;
-        this.currentDialogueConfig = config_data._instance.getCurrentNodeConfigById(id);
-        this.next();
-    },
     executeProgress()
     {
         this.currentDialogueConfig = config_data._instance.getCurrentNodeConfig();
@@ -157,7 +106,7 @@ var dialogueSystem =cc.Class({
     },
     executeNextChapterProgress()
     {
-    
+        historyConSystem._instance.clear()//清空回顾记录
         this.currentDialogueConfig = config_data._instance.getCurrentNodeConfig();
         this.anlaysisDialogue(this.currentDialogueConfig.nodeType);
     },
@@ -171,7 +120,7 @@ var dialogueSystem =cc.Class({
         var  nNodeConfig = config_data._instance.getTempNextConfig();
         if(!!nNodeConfig&&!!nNodeConfig.nodeType)
         {
-            return (nNodeConfig.nodeType ==  global.nodeType.Over) || (nNodeConfig.nodeType ==  global.nodeType.SubOver);
+            return (nNodeConfig.nodeType ==  global.nodeType.Over);
         }
         else
         {
@@ -180,24 +129,13 @@ var dialogueSystem =cc.Class({
     },
     onDestory()
     {
-        this.stopAutoPlay();
+        this.closeAutoPlay();
     },
-    
-    stopAutoPlay()
+    closeAutoPlay()
     {
         this.isAutoPlay = false;
         global.isAutoPlay = false;
         this.dialogueUIConObj.getComponent("dialogueUICon").stopAutoPlay();
-    },
-    isEnabelAutoPlay()
-    {
-        if(!!this.currentDialogueConfig)
-        {
-            return this.currentDialogueConfig.nodeType ==  global.nodeType.Dialogue
-        }
-        else{
-            return false;
-        }
     },
     autoPlayNext()
     {
@@ -217,18 +155,15 @@ var dialogueSystem =cc.Class({
             this.currentDialogueConfig.nodeType ==  global.nodeType.GotoFeatureScene||
             this.currentDialogueConfig.nodeType ==  global.nodeType.JudgeCondition)
         {
+                if(this.currentDialogueConfig.nodeType== global.nodeType.Over )
+                {
+                    console.log("this.currentDialogueConfig.nodeType this.currentDialogueConfig.nodeType this.currentDialogueConfig.nodeType!!!");
+                }
+
             if(this.currentDialogueNodeOver)
             {
                 this.anlaysisDialogue(this.currentDialogueConfig.nodeType);
             }
-        }
-        if(this.currentDialogueConfig.nodeType== global.nodeType.Over ||
-            this.currentDialogueConfig.nodeType== global.nodeType.SubOver)
-        {
-           
-            this.stopAutoPlay();
-            this.anlaysisDialogue(this.currentDialogueConfig.nodeType);
-          
         }
         else
         {
@@ -239,7 +174,6 @@ var dialogueSystem =cc.Class({
     {
         if(this.currentDialogueConfig.nodeType ==  global.nodeType.Dialogue)
         {
-            config_data._instance.saveLastestConfig();
             if(this.currentDialogueNodeOver)
             {
                 this.executeDialogue();
@@ -254,9 +188,9 @@ var dialogueSystem =cc.Class({
             this.currentDialogueConfig = config_data._instance.getNextConfig();
             this.anlaysisDialogue(this.currentDialogueConfig.nodeType);
         }
-        else if(this.currentDialogueConfig.nodeType ==  global.nodeType.Over || this.currentDialogueConfig.nodeType ==  global.nodeType.SubOver)
+        else if(this.currentDialogueConfig.nodeType ==  global.nodeType.Over)
         {
-           
+            console.log(" executeOverNode 444 ");
             this.anlaysisDialogue(this.currentDialogueConfig.nodeType);
         }
         else if(this.currentDialogueConfig.nodeType ==  global.nodeType.QuestionAndInputAnswer||
@@ -264,12 +198,12 @@ var dialogueSystem =cc.Class({
             this.currentDialogueConfig.nodeType ==  global.nodeType.GotoFeatureScene||
             this.currentDialogueConfig.nodeType ==  global.nodeType.JudgeCondition)
         {
-            config_data._instance.saveLastestConfig();
             if(this.currentDialogueNodeOver)
             {
                 this.anlaysisDialogue(this.currentDialogueConfig.nodeType);
             }
         }
+        config_data._instance.saveLastestConfig();//记录最新进展情况
     },
     hide()
     {
@@ -306,81 +240,82 @@ var dialogueSystem =cc.Class({
             case global.nodeType.Over:
                 this.executeOverNode();
                 break;
-            case global.nodeType.SubOver:
-                this.executeSubOverNode();
-                break;
         }
     },
     executeStartNode()
     {
         this.next();
     },
-    executeSubOverNode()
-    {
-        if(this.currentChapterOver)
-        {
-            return;
-        }
-        this.currentChapterOver = true;
-        storage_con._instance.clearCurrentNodeConfig();
-        storage_con._instance.clearLastestNodeConfig();
-        this.stopAutoPlay();
-        this.dialogueOverCon.getComponent("dialogueOverCon").showSubOver();
-    },
     executeOverNode()
     {
-        if(this.currentChapterOver)
+        if(global.selectActorId == global.publishActorId)
         {
-            return;
-        }
-        this.currentChapterOver = true;
-
-        this.stopAutoPlay();
-        this.isEnableTouch = false;
-        if(global.selectActorId != global.publishActorId)
-        {
-            var selectChapterId = parseInt(global.selectChapterId) + 1;
-            if(selectChapterId == global.QTEChapterId)
+            console.log("publishActorId 01 is " + global.selectActorId + " selectChapterId " +global.selectChapterId );
+            if( global.selectChapterId == 2001)
             {
-                var qteactor =  storage_con._instance.getQTEActor();
-                console.log("qteactor is called " + qteactor);
-                if(!!qteactor && qteactor == global.selectActorId)
-                {
-                    console.log("QTE 条件触发成功！！�?");
-                     
-                     this.closeAllDialogue();
-                     global.selectChapterId =selectChapterId;
-                    config_data._instance.loadNextChapterConfig((v)=>{
-                        if(v>0)
-                        {
-                            this.currentChapterOver = false;
-                            storage_con._instance.addActiveChapter(global.selectActorId ,selectChapterId);
-                            this.swithChapterAnim((rv)=>{
-                                console.log("  已经切换了章节了�?222 ");
-                                this.executeNextChapterProgress();
-                                this.isEnableTouch = true;
-                            });
-                        }
-                    });
-                }
-                else
-                {
-                    this.dialogueOverCon.getComponent("dialogueOverCon").show();
-                }
+                global.selectChapterId = parseInt( global.selectChapterId) + 1;
+                console.log("publishActorId 02 is " + global.selectActorId + " selectChapterId " +global.selectChapterId );
+                config_data._instance.loadNextChapterConfig((v)=>{
+                    if(v>0)
+                    {
+                        this.executeNextChapterProgress();
+                        this.isEnableTouch = true;
+                    }
+                });
             }
-            else
+            else if( global.selectChapterId == 2002)
             {
-                this.dialogueOverCon.getComponent("dialogueOverCon").show();
+                global.selectActorId = global.selectPhoneActorId;
+                global.selectChapterId = 3001;
+                
+                config_data._instance.loadNextChapterConfig((v)=>{
+                    if(v>0)
+                    {
+                        this.swithChapterAnim((rv)=>{
+                            this.executeNextChapterProgress();
+                            this.isEnableTouch = true;
+                        });
+                    }
+                });
             }
         }
         else
         {
-            this.dialogueOverCon.getComponent("dialogueOverCon").show();
+            if(global.selectChapterId ==  global.chapterEndId )
+            {
+                storage_con._instance.clearCurrentNodeConfig();//清楚本地的读取章节进度
+                storage_con._instance.clearLastestNodeConfig();
+                storage_con._instance.addFinishedActor(global.selectActorId);
+                cc.director.loadScene("home");
+                return;
+            }
+            
+            global.selectChapterId = parseInt(global.selectChapterId) + 1;
+
+            if(global.selectChapterId == 3004)
+            {
+                if( !global.isEmitQTE)
+                {
+                    global.selectChapterId = global.selectChapterId+1;
+                }
+                else if(global.isEmitQTE)
+                {
+                    global.isEmitQTE = false;
+                }
+            }
+            
+            //加载下一个章节
+            config_data._instance.loadNextChapterConfig((v)=>{
+                if(v>0)
+                {
+                    this.swithChapterAnim((rv)=>{
+                        console.log("  已经切换了章节了哦 222 ");
+                        this.executeNextChapterProgress();
+                        this.isEnableTouch = true;
+                    });
+                }
+            });
         }
-    },
-    testShowClick()
-    {
-        this.dialogueOverCon.getComponent("dialogueOverCon").show();
     },
     loadChapterByTargetName(jsonName)
     {
@@ -388,59 +323,30 @@ var dialogueSystem =cc.Class({
         config_data._instance.loadConfigActor(jsonName,(v)=>{
             if(v>0)
             {
-                storage_con._instance.addActiveChapter(global.selectActorId ,global.selectChapterId);
+                
                 if(global.isFeatureMode&&global.isFeatureOver)
                 {
                     console.log("data from feature mode  ");
                     config_data._instance.handleFeatureConfig();
-                    
+                    //表示从特殊场景恢复
                     global.isFeatureMode = false;
                     global.isFeatureOver = false;
-
-                    var lastRewards = storage_con._instance.getCurrentRewards();
-                    if(!!lastRewards)
-                    {
-                        global.dialogueRewardDic = lastRewards;
-                    }
-                    global.gTipDatas=[];
                 }
-                else if(global.isRecoverLastNode)
+                else if(global.isRecoverLastNode)//恢复之前的节点
                 {
                     global.isRecoverLastNode = false;
                     console.log("data from lastest mode  ");
                     config_data._instance.handleLastestConfig();
-                    
-                    var lastRewards = storage_con._instance.getCurrentRewards();
-                    if(!!lastRewards)
-                    {
-                        global.dialogueRewardDic = lastRewards;
-                    }
-
-                    var musicid = storage_con._instance.getLastDialogueMusicBg();
-                    if(musicid && !!musicCon._instance)
-                    {
-                        musicCon._instance.playRecoverAudio(musicid);
-                    }
                 }
-                else
-                {
-                    storage_con._instance.clearCurrentRewards();
-                }
-
                 this.executeProgress();
-                this.isEnableTouch = true;
             }
         });
     },
     executeDialogue()
     {
-        this.currentDialogueNodeOver = false;
+        this.currentDialogueNodeOver = false;//将是否当前节点信息显示完整 设置为false;
         if(!!this.currentDialogueConfig.bgId&&this.currentDialogueConfig.bgId!="")
         {
-            if(this.checkIfNeedSwitch())
-            {
-                this.dialogureTextConObj.getComponent("dialogureTextCon").close();
-            }
             this.checkBgConfig((rv)=>{
                 this.dialogureTextConObj.getComponent("dialogureTextCon").execute(this.currentDialogueConfig);
                 this.isEnableTouch = true;
@@ -452,28 +358,6 @@ var dialogueSystem =cc.Class({
             this.isFirstEnter = false;
             this.isEnableTouch = true;
         }
-
-        if(!!this.currentDialogueConfig.isMergeNode)
-        {
-         
-            if(!!global.branchStr && global.branchStr !="")
-            {
-                global.branchStr = global.branchStr +"_"+ +"-1";
-            }
-            else
-            {
-                global.branchStr = "-1";
-            }
-            var isEnableSkip = storage_con._instance.checkStartActorSkipStatus(global.selectActorId,global.selectChapterId);
-            if(isEnableSkip)
-            {
-                this.dialogueUIConObj.getComponent("dialogueUICon").setSkipEnabled(true);
-            }
-            storage_con._instance.saveRecoverSkipStatus(global.branchStr);
-            console.log("global.branchStr is called " + global.branchStr);
-       
-        }
-
     },
     executeImageDialgoue()
     {
@@ -481,7 +365,7 @@ var dialogueSystem =cc.Class({
     },
     executeQuestionInput()
     {
-        this.currentDialogueNodeOver = false;
+        this.currentDialogueNodeOver = false;//将是否当前节点信息显示完整 设置为false;
         if(!!this.currentDialogueConfig.bgId&&this.currentDialogueConfig.bgId!="")
         {
             this.checkBgConfig((rv)=>{
@@ -505,7 +389,7 @@ var dialogueSystem =cc.Class({
     executeMultiChoices()
     {
         console.log( this.currentDialogueConfig);
-        this.currentDialogueNodeOver = false;
+        this.currentDialogueNodeOver = false;//将是否当前节点信息显示完整 设置为false;
 
         if(!!this.currentDialogueConfig.bgId)
         {
@@ -525,7 +409,7 @@ var dialogueSystem =cc.Class({
     },
     executeJudgeCondition()
     {
-        this.currentDialogueNodeOver = false;
+        this.currentDialogueNodeOver = false;//将是否当前节点信息显示完整 设置为false;
         if(!!this.currentDialogueConfig.bgId)
         {
             this.checkBgConfig((rv)=>{
@@ -544,15 +428,8 @@ var dialogueSystem =cc.Class({
     },
     executeFeatureScene()
     {
-        this.currentDialogueNodeOver = false;
+        this.currentDialogueNodeOver = false;//将是否当前节点信息显示完成 设置为false;
         var sceneid= this.currentDialogueConfig.featureData.featureSceneId;
-        global.gTipDatas =  this.currentDialogueConfig.featureData.tipDatas;
-        global.gFeatureGuideContent = this.currentDialogueConfig.featureData.guideContent;
-        console.log(" global.gTipDatas is ");
-        console.log( global.gTipDatas );
-        console.log(" global.gFeatureGuideContent is ");
-        console.log( global.gFeatureGuideContent );
-        
         var sceneName = global.getFeatureSceneName(sceneid);
         if(!!sceneName)
         {
@@ -561,8 +438,7 @@ var dialogueSystem =cc.Class({
             global.isAutoPlay = this.isAutoPlay;
             config_data._instance.saveFeatureNodeConfig();
             console.log("sceneName is " + sceneName);
-            this.showLoading();
-            gotoScene(sceneName);
+            cc.director.loadScene(sceneName);
         }
     },
     checkBgConfig(func = null)
@@ -572,11 +448,6 @@ var dialogueSystem =cc.Class({
         {
             bgSwitchCon._instance.changeBg(this.currentDialogueConfig.bgId,func);
         }
-    },
-    checkIfNeedSwitch()
-    {
-        var isChange = bgSwitchCon._instance.checkIfNeedSwitch(this.currentDialogueConfig.bgId);
-        return isChange;
     },
     swithChapterAnim(func = null)
     {
@@ -589,71 +460,9 @@ var dialogueSystem =cc.Class({
         this.inputDialogueConObj.getComponent("inputQuesDialogue").close();
         this.mulitSelectDialogueConObj.getComponent("multiSelectQuesDialogue").close();
         this.judgeDialogueConObj.getComponent("judgeDialogue").close();
-    },
-    checkIfFinished()
-    {
-        var finishDic= storage_con._instance.getFinishedConfig();
-       
-            var isFinishAll = true;
-            if(!!finishDic)
-            {
-                for(var akey in global.actorDic)
-                {
-                    if(akey!="1000"&&!finishDic[akey])
-                    {
-                        isFinishAll = false;
-                        break;
-                    }
-                }
-            }
-            else{
-                isFinishAll = false;
-            }
-            
-            return isFinishAll;
-    },
-    skip()
-    {
-        this.showLoading();
-
-        this.scheduleOnce(()=>{ 
-            this.hideLoading();
-
-            this.closeAllDialogue();
-            config_data._instance.getSkip();
-            this.currentDialogueConfig = config_data._instance.getCurrentNodeConfig();
-            this.anlaysisDialogue(this.currentDialogueConfig.nodeType);
-         },1);
-    },
-    showLoading()
-    {
-        this.dialogueLoadingCon.getComponent("dialogueLoadingCon").show();
-    },
-    hideLoading()
-    {
-        this.dialogueLoadingCon.getComponent("dialogueLoadingCon").hide();
-    },
-    releaseBgAndLihui()
-    {
-        console.log("global.dialogueBgDic is ");
-        console.log(global.dialogueBgDic);
-
-        console.log("global.dialogueLihuiDic is ");
-        console.log(global.dialogueLihuiDic);
-        
-        
-        for(var key in global.dialogueBgDic)
-        {
-            cc.loader.releaseRes("bgs/"+key,cc.SpriteFrame);
-        }
-
-        for(var key in global.dialogueLihuiDic)
-        {
-            cc.loader.releaseRes("anims/"+key,cc.SpriteFrame);
-        }
-        
     }
-    
+
+    // update (dt) {},
 });
 
 module.exports = dialogueSystem

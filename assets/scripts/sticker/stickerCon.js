@@ -1,6 +1,6 @@
 var TipCon =require("TipCon") ;
 var global = require("globalSetting");
-var dialogueLoadingCon = require("dialogueLoadingCon");
+
 cc.Class({
     extends: cc.Component,
 
@@ -8,10 +8,7 @@ cc.Class({
         mazeItemParent:cc.Node,
         inputDialogueCon:cc.Node,
         dynamicText:cc.Label,
-        questionTipObj:cc.Node,
-        stickerPreviewObj:cc.Node,
-        stickerPreviewSpriteFrames:[cc.SpriteFrame],
-        successMaskObj:cc.Node
+        questionTipObj:cc.Node
     },
     start () {
 
@@ -26,7 +23,8 @@ cc.Class({
 
         this.node.on(cc.Node.EventType.TOUCH_END, this.trigerClick, this);
 
-        this.isShowPreview = false;
+        this.selectObj = null;
+
         var that = this;
         this.isActive = true;
         this.inputDialogueCon.getComponent("inputDialogueCon").initEvent(function(code){
@@ -38,11 +36,9 @@ cc.Class({
     {
        this.questionConfig ={
             "isNeedJugdeAnswer": 1,
-        
-            "questionContent": global.gFeatureGuideContent,
-            "answerContent": "直到遇见�?,
-       
-            "tipDatas":global.gTipDatas,
+            "questionContent": "便利贴上的数字，好像和墙上的便利贴顺序有关，白起写的是……",
+            "answerContent": "直到遇见你",
+            "tipDatas": ["白起曾经写下的便签纸隐匿在不均匀的分布的7*7便签墙上", "提示的便签纸上的下坠的7寓意着从上往下数的第七行", "第七行其中只有一张便签纸上的话才可能是白起说的，把他写下来"],
             "bags": [],
             "extraData": {
                 "bags": [],
@@ -55,7 +51,7 @@ cc.Class({
 
         var tdatas = this.questionConfig.tipDatas;
 
-        if(!!tdatas && tdatas.length>0)
+        if(!!tdatas)
         {
             this.questionTipObj.getComponent("questionTip").setTipConfig(tdatas);
             this.isHasTipConfig = true;
@@ -73,37 +69,32 @@ cc.Class({
             console.log("your answer is incorrect !");
         }
     },
+
     trigerClick(e)
     {
-        if(this.isShowPreview)
+        if(!! this.selectObj)
         {
-            this.__hideFadeAction = cc.fadeOut(0.2);
-            this.stickerPreviewObj.runAction(  this.__hideFadeAction );
-            this.isShowPreview = false;
+            this.selectObj.zIndex  =0;
+            this.selectObj.getComponent("stickerItem").hidePreview();
+            this.selectObj = null;
         }
     },
-    nodeTap(itemno,av)
+    nodeTap(obj,av)
     {
-        if(!!this.stickerPreviewObj &&  !this.isShowPreview )
+        if(!!this.selectObj)
         {
-            var sindex = parseInt(itemno)-1;
-            this.stickerPreviewObj.getComponent(cc.Sprite).spriteFrame = this.stickerPreviewSpriteFrames[sindex];
-            this.__showFadeAction = cc.fadeIn(0.3);
-            this.stickerPreviewObj.runAction(  this.__showFadeAction );
-            this.isShowPreview = true;
+            this.selectObj.zIndex  =0;
         }
+        this.selectObj = obj;
+        this.selectObj.zIndex  = 9;
     },
     coporateCompelted()
     {
-        TipCon._instance.showTip("恭喜你！回答正确");
-        if(!!this.successMaskObj)
-        {
-            this.successMaskObj.active = true;
-        }
-        this.scheduleOnce(()=>{
-            dialogueLoadingCon._instance.show();
+        TipCon._instance.showTip("恭喜你！已经回答完成");
+       
+        this.scheduleOnce(()=>{ 
             global.isFeatureOver = true;
-            gotoScene("dialogue");
+            cc.director.loadScene("dialogue");
          },2);
     },
     showTipClick()
@@ -116,9 +107,8 @@ cc.Class({
             }
             else
             {
-                TipCon._instance.showTip("此处暂无提示");
+                TipCon._instance.showTip("此处没有提示哦！");
             }
         }
     },
 });
-

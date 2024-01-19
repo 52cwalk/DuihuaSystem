@@ -3,14 +3,14 @@
 var getApiHost = function()
 {
     var Host = "";
-    Host = "http:
+    Host = "http://localhost:4001/lianyu/";
     if (typeof wx != 'undefined') {
-        Host = "https:
+        Host = "https://lianyu.hzsdgames.com/lianyu/";
         return Host;
     }
     else
     {
-        Host = "http:
+        Host = "http://localhost:4001/lianyu/";
         return Host;
     }
 }
@@ -18,26 +18,24 @@ var getApiHost = function()
 var getHost = function()
 {
     var Host = "";
-    Host = "http:
+    Host = "http://localhost:4001/";
     if (typeof wx != 'undefined') {
-        Host = "https:
+        Host = "https://lianyu.hzsdgames.com/";
         return Host;
     }
     else
     {
-        Host = "http:
+        Host = "http://localhost:4001/";
         return Host;
     }
 }
 
 var login = function(params,cb) {
     
-    console.log("getApiHost() is called ");
-    console.log(getApiHost());
     var requestApi = getApiHost()+"login";
 
     let xhr = new XMLHttpRequest();
-    
+    //xhr.setRequestHeader("Authorization", true);
     var that = this;
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
@@ -63,7 +61,7 @@ var login = function(params,cb) {
 }
 
 
-
+///更新金币数量
 var updateCoin = function(coinno,cb) {
 
     var requestApi = getApiHost()+"updateCoin";
@@ -95,7 +93,7 @@ var updateCoin = function(coinno,cb) {
 }
 
 
-
+///更新金币数量
 var activeApp = function(activecode,cb) {
 
     var requestApi = getApiHost()+"activeApp";
@@ -107,15 +105,7 @@ var activeApp = function(activecode,cb) {
             var response = JSON.parse(xhr.responseText);
             console.log(" activeApp is back ");
             console.log(response);
-            if(response.code>0&& !!response.user)
-            {
-                cb(response.code,response.user.exchangecode);
-            }
-            else
-            {
-                cb(response.code,null);
-            }
-            
+            cb(response.code);
         }
     };
 
@@ -134,7 +124,7 @@ var activeApp = function(activecode,cb) {
 
 
 
-
+///更新生日
 var udpateBirthday = function(birthday,cb) {
 
     var requestApi = getApiHost()+"udpateBirthday";
@@ -166,7 +156,7 @@ var udpateBirthday = function(birthday,cb) {
 }
 
 
-
+///更新昵称
 var udpateNickame = function(nickname,cb) {
 
     var requestApi = getApiHost()+"udpateNickame";
@@ -228,50 +218,10 @@ var getUserInfo = function(params,cb) {
     }
 }
 
-
-
-
-var checkContentLawful = function(content,cb) {
-
-    var requestApi = getApiHost()+"checkContentLawful";
-
-    let xhr = new XMLHttpRequest();
-    var that = this;
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
-            var response = JSON.parse(xhr.responseText);
-            console.log(" checkContentLawful is back ");
-            console.log(response);
-            if(response.code>0)
-            {
-                cb(response.data.errcode);
-            }
-            else
-            {
-                cb("-1");
-            }
-        }
-    };
-
-    let data = {};
-
-    var global = require("globalSetting");
-
-    if(!!global.openid)
-    {
-        data.openid = global.openid;
-        data.content = content;
-        
-        xhr.open("post", requestApi, true);
-    
-        xhr.setRequestHeader('Content-Type', 'application/json;charset=utf-8');
-    
-        xhr.send(data);
-    }
-}
-
-
-
+/*
+updateMaxLevel
+updateCoin
+*/
 
 module.exports = 
 {
@@ -281,7 +231,5 @@ module.exports =
     updateCoin:updateCoin,
     activeApp:activeApp,
     udpateBirthday,
-    udpateNickame,
-    checkContentLawful
+    udpateNickame
 }
-

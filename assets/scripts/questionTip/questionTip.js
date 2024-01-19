@@ -8,8 +8,8 @@ cc.Class({
         mainObj:cc.Node,
         defaultToggleObj:cc.Toggle
     },
-    
-    
+    // LIFE-CYCLE CALLBACKS:
+    // onLoad () {},
     start () {
 
     },
@@ -24,7 +24,7 @@ cc.Class({
         {
             this.contentObjs[i].getComponent("questionTipContentItem").setContent(tdatas[i]);
         }
-        this.tipItemClick(null,1);
+        this.tipItemClick(null,1);//默认第一个点击
     },
     tipItemClick(eobj,data)
     {
@@ -59,6 +59,5 @@ cc.Class({
             }
         }
     }
-    
+    // update (dt) {},
 });
-

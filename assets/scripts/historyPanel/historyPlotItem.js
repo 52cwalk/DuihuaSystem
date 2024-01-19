@@ -12,6 +12,7 @@ cc.Class({
     },
     setConfig(config)
     {
+        
         this.dataConfig = config;
         if(!! this.actorLabel)
         {
@@ -26,8 +27,8 @@ cc.Class({
             }
 
         }
-      
-     
+      //  this.initAllLabel();
+     //   this.showContent(0);
     },
     initAllLabel()
     {
@@ -44,13 +45,10 @@ cc.Class({
     showContent(index)
     {
         var str = this.dataConfig.dialogueData.dialogueContents[index];
-        if(!!str&& str!="null")
-        {
-            str= str.replace("$u",global.getUserNickName("$u"));
-            var contentLabelObj = cc.instantiate(this.contentLabelPrefab);
-            contentLabelObj.parent = this.parentObj;
-            contentLabelObj.getComponent(cc.Label).string = str;
-        }
+        str= str.replace("$u",global.getUserNickName("$u"));
+        var contentLabelObj = cc.instantiate(this.contentLabelPrefab);
+        contentLabelObj.parent = this.parentObj;
+        contentLabelObj.getComponent(cc.Label).string = str;
     },
     initByLocalConfig(config)
     {
@@ -65,4 +63,3 @@ cc.Class({
         }
     }
 });
-

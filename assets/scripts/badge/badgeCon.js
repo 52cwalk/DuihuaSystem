@@ -1,18 +1,18 @@
 var TipCon =require("TipCon") ;
 var global = require("globalSetting");
-var dialogueLoadingCon = require("dialogueLoadingCon");
+
 cc.Class({
     extends: cc.Component,
 
     properties: {
-        bigDadgeObj:cc.Node,
+        badgeObj:cc.Node,
         inputDialogueCon:cc.Node,
         dynamicText:cc.Label,
-        questionTipObj:cc.Node,
-        successMaskObj:cc.Node
+        questionTipObj:cc.Node
     },
     start () {
         this.node.on(cc.Node.EventType.TOUCH_END, this.trigerClick, this);
+        this.prePosition = cc.v2(this.badgeObj.x,this.badgeObj.y);
         this.isShowPreview = false;
         var that = this;
         this.inputDialogueCon.getComponent("inputDialogueCon").initEvent(function(code){
@@ -24,14 +24,11 @@ cc.Class({
     },
     initConfig()
     {
-       this.huizhangConfig = {
-           "nodeId":"huizhang_01",
+       this.questionConfig = {
             "isNeedJugdeAnswer": 1,
-        
-            "questionContent": global.gFeatureGuideContent,
+            "questionContent": "上面好像有什么字……",
             "answerContent": "迎接",
-           
-           "tipDatas":global.gTipDatas,
+            "tipDatas": ["APP上的警徽与实体警徽有四处不同", "仔细观察，四处不同都集中在警徽的中间骏马处", "四处不同两两组合成两个字"],
             "bags": [],
             "extraData": {
                 "bags": [],
@@ -40,16 +37,16 @@ cc.Class({
             }
         }
 
-        this.inputDialogueCon.getComponent("inputDialogueCon").createInputItems(this.huizhangConfig.answerContent);
-        var tdatas = this.huizhangConfig.tipDatas;
+        this.inputDialogueCon.getComponent("inputDialogueCon").createInputItems(this.questionConfig.answerContent);
+        var tdatas = this.questionConfig.tipDatas;
 
-        if(!!tdatas&&tdatas.length>0)
+        if(!!tdatas)
         {
             this.questionTipObj.getComponent("questionTip").setTipConfig(tdatas);
             this.isHasTipConfig = true;
         }
 
-        this.dynamicText.string = this.huizhangConfig.questionContent;
+        this.dynamicText.string = this.questionConfig.questionContent;
     },
     trigerClick(e)
     {
@@ -79,36 +76,31 @@ cc.Class({
     },
     showPreview()
     {
-      
-       
-       this.__showFadeAction = cc.fadeIn(0.5);
+      //  this._moveToCenterAction = cc.moveTo(0.2, 0, 0);
+        this.__showScaleAction = cc.scaleTo(0.2,2,2);
 
-        
+        //var seq1 = cc.sequence([this._moveToCenterAction, this.__showScaleAction]);
 
-    
-        this.bigDadgeObj.runAction(  this.__showFadeAction );
+    //    this.badgeObj.runAction( this._moveToCenterAction);
+        this.badgeObj.runAction(  this.__showScaleAction );
         this.isShowPreview = true;
     },
     hidePreview()
     {
-        
-        this.__showFadeAction = cc.fadeOut(0.2);
-        this.bigDadgeObj.runAction(  this.__showFadeAction );
-        
-        
+        this._moveToCenterAction = cc.moveTo(0.2, this.prePosition.x,this.prePosition.y );
+        this.__showScaleAction = cc.scaleTo(0.2,1,1);
+
+        this.badgeObj.runAction( this._moveToCenterAction);
+        this.badgeObj.runAction(  this.__showScaleAction );
         this.isShowPreview = false;
     },
     coporateCompelted()
     {
-        TipCon._instance.showTip("恭喜你！回答正确");
-        if(!!this.successMaskObj)
-        {
-            this.successMaskObj.active = true;
-        }
+        TipCon._instance.showTip("恭喜你！已经回答完成");
+
         this.scheduleOnce(()=>{ 
-            dialogueLoadingCon._instance.show();
             global.isFeatureOver = true;
-            gotoScene("dialogue");
+            cc.director.loadScene("dialogue");
          },2);
     },
     showTipClick()
@@ -121,10 +113,9 @@ cc.Class({
             }
             else
             {
-                TipCon._instance.showTip("此处暂无提示");
+                TipCon._instance.showTip("此处没有提示哦！");
             }
         }
     },
 
 });
-

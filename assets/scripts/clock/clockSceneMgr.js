@@ -1,42 +1,45 @@
 
 var TipCon =require("TipCon") ;
 var global = require("globalSetting");
-var dialogueLoadingCon = require("dialogueLoadingCon");
+
 cc.Class({
     extends: cc.Component,
     properties: {
         minArrowObj:cc.Node,
         hourArrowObj:cc.Node,
         titlelabel:cc.Label,
-        clocklabel:cc.Label,
         checkBtn:cc.Node,
-        questionTipObj:cc.Node,
-        tipSpriteObj:cc.Node,
-        tipClockSpriteFrame:[cc.SpriteFrame],
-        errorRange:6,
-        successMaskObj:cc.Node
+        questionTipObj:cc.Node
     },
     start () {
 
         this.timesonfig = [
             {
-                corName:'15 : 00',
-                minTargetAngle:0,
-                hourTargetAngle:270,
+                corName:'3:00',
+                minTargetAngle:90,
+                hourTargetAngle:0,
                 isCompeleted:false
             },
             {
-                corName:'18 : 00',
-                minTargetAngle:0,
-                hourTargetAngle:180,
+                corName:'6:00',
+                minTargetAngle:90,
+                hourTargetAngle:270,
                 isCompeleted:false
             },{
-                corName:'19 : 17',
-                minTargetAngle:258,
-                hourTargetAngle:142,
+                corName:'4:00',
+                minTargetAngle:90,
+                hourTargetAngle:330,
                 isCompeleted:false
             }
         ];
+
+        this.titleConfigs=[
+            "请将时针和分钟调整到正确位置",
+            "请将时间调整到3点整",
+            "请将时间调整到6点整",
+            "请将时间调整到4点整",
+            "恭喜你，你已经完成了挑战！"
+        ]
 
         this.minArrowObj.getComponent("clockItem").initEvent((a)=>{this.updateMinPoint(a)},()=>{this.endMinPoint()});
         this.hourArrowObj.getComponent("clockItem").initEvent((a)=>{this.updateHourPoint(a)},()=>{this.endHourPoint()});
@@ -49,25 +52,17 @@ cc.Class({
         this.isCompleteCorrect = false;
         this.timeConfigIndex = 0;
 
-        this.tipSpriteObj.getComponent(cc.Sprite).spriteFrame = this.tipClockSpriteFrame[0];
-
+        this.titlelabel.string = this.titleConfigs[0];
         this.isActive = true;
         this.initConfig();
-
-        if(!!this.hourArrowObj)
-        {
-            this.hourArrowObj.getComponent("clockItem").setRotationEnable(false);
-        }
-
     },
     initConfig()
     {
        this.questionConfig ={
             "isNeedJugdeAnswer": 1,
-            "questionContent": "便利贴上的数字，好像和墙上的便利贴顺序有关，张三写的是…�?,
-            "answerContent": "直到遇见�?,
-         
-              "tipDatas":global.gTipDatas,
+            "questionContent": "便利贴上的数字，好像和墙上的便利贴顺序有关，白起写的是……",
+            "answerContent": "直到遇见你",
+            "tipDatas": ["将公章摆放成与APP上看到的方位一致的样子", "从起始范围开始观察，找出唯一符合真实时间逻辑的时刻，并在APP上调整至该时刻", "根据公章变化，调整位置后继续观察唯一符合逻辑的时刻并继续录入，直至得到最后的时刻"],
             "bags": [],
             "extraData": {
                 "bags": [],
@@ -76,14 +71,9 @@ cc.Class({
             }
         }
 
-        if(!!global.gFeatureGuideContent)
-        {
-            this.titlelabel.string = global.gFeatureGuideContent;
-        }
-        
         var tdatas = this.questionConfig.tipDatas;
 
-        if(!!tdatas && tdatas.length>0)
+        if(!!tdatas)
         {
             this.questionTipObj.getComponent("questionTip").setTipConfig(tdatas);
             this.isHasTipConfig = true;
@@ -91,74 +81,29 @@ cc.Class({
     },
     updateMinPoint(angle)
     {
-        this.sumMinDeltaAngle += angle;
-        
-        this.keepHourByMin(this.sumMinDeltaAngle);
+        if(this.isCompleteCorrect)
+        {
+            this.sumMinDeltaAngle += angle;
+         //   console.log(this.sumMinDeltaAngle);
+            this.keepHourByMin(this.sumMinDeltaAngle);
+        }
     },
     endMinPoint()
     {
-        if(this.isCompleteCorrect)
-        {
-            this.sumMinDeltaAngle = 0;
-            this.sumHourDeltaAngle = 0;
-
-            this.preMinAngle = this.minArrowObj.angle;
-            this.preHourAngle = this.hourArrowObj.angle;
-
-            var hour = 0;
-            var min = 0;
-
-            var intervalMinTime = (this.minArrowObj.angle+360)%360;
-            var intervalHourTime = (this.hourArrowObj.angle+360)%360;
-         
-            var minAngle =0 ;
-            var hourAngle =0;
-  
-            hourAngle = ((360 - intervalHourTime)/30)%60;
-            hour = this.getHourClock(hourAngle);
-
-            intervalMinTime = (this.minArrowObj.angle+360)%360;
-            minAngle = Math.round( (360 - intervalMinTime)/6 )%60;
-            min =minAngle<10?("0"+minAngle.toString()): minAngle.toString();
-
-            hour = parseInt(hour);
-            this.clocklabel.string = hour+" : "+min;
-        }
-    },
-    getHourClock(hourAngle)
-    {
-        var targetAngle = 0;
-        var targetAngle2 = 360;
-       
-        var minAngle = (this.minArrowObj.angle%360+360)%360;
-        if( (Math.abs(targetAngle-minAngle)<this.errorRange  || (Math.abs(targetAngle2-minAngle)<this.errorRange )))
-        {
-            var correntHourAngle =  Math.round(hourAngle) *30;
-            this.hourArrowObj.angle = 360 - correntHourAngle;
-            this.minArrowObj.angle = 0;
-            this.preMinAngle = this.minArrowObj.angle;
-            this.preHourAngle = this.hourArrowObj.angle;
-
-            var intervalHourTime = (this.hourArrowObj.angle+360)%360;
-            hourAngle = ((360 - intervalHourTime)/30)%60;
-        }
-
-        if((Math.abs(targetAngle2-minAngle)<30 ))
-        {
-            hourAngle = hourAngle+0.1;
-        }
-
-       
-
-        var hour = 12 + parseInt(hourAngle);
-        return hour;
+        this.sumMinDeltaAngle = 0;
+        this.sumHourDeltaAngle = 0;
+        this.preHourAngle = this.hourArrowObj.angle;
+        this.preMinAngle = this.minArrowObj.angle;
+        console.log("endMinPoint event end ");
     },
     updateHourPoint(angle)
     {
         if(this.isCompleteCorrect)
         {
             this.sumHourDeltaAngle += angle;
+
             this.sumHourDeltaAngle = this.sumHourDeltaAngle;
+
             this.keepMinByHour(this.sumHourDeltaAngle);
         }
     },
@@ -172,29 +117,26 @@ cc.Class({
     },
     keepHourByMin(angle)
     {
-        
+        //  console.log("分钟 :"+ angle );
         var reAngle = (this.preHourAngle  + (angle)/12);
-    
+    //    console.log(" angle " +angle+ +" minArrowObj " + this.minArrowObj.angle + " reAngle " + reAngle);
         this.hourArrowObj.angle = reAngle;
     },
     keepMinByHour(angle)
     {
-        
+        //  console.log("分钟 :"+ angle );
         var reAngle = (this.preMinAngle  + (angle)*12);
-      
+      //  console.log(" angle " +angle+ +" hourArrowObj " + this.hourArrowObj.angle + " reAngle " + reAngle);
         this.minArrowObj.angle = reAngle;
     },
+    
     coporateCompelted()
     {
-        TipCon._instance.showTip("恭喜你！你已经完成了时钟调整�?);
-        if(!!this.successMaskObj)
-        {
-            this.successMaskObj.active = true;
-        }
+        TipCon._instance.showTip("恭喜你！你已经完成了时钟调整！");
+
         this.scheduleOnce(()=>{ 
-            dialogueLoadingCon._instance.show();
             global.isFeatureOver = true;
-            gotoScene("dialogue");
+            cc.director.loadScene("dialogue");
          },2);
     },
     checkCorrent()
@@ -203,69 +145,31 @@ cc.Class({
         {
             var minAngle = (this.minArrowObj.angle%360+360)%360;
             var hourAngle = (this.hourArrowObj.angle%360+360)%360;
-            console.log("minAngle is " + minAngle +" hourangle is  " + hourAngle);
-            var targetAngle = 0;
-            var targetAngle2 = 360;
-            if((Math.abs(targetAngle-minAngle)<this.errorRange || Math.abs(targetAngle2-minAngle)<this.errorRange) &&
-            (Math.abs(targetAngle-hourAngle)<this.errorRange || Math.abs(targetAngle2-hourAngle)<this.errorRange) )
+
+            var targetAngle = 90;
+            if(Math.abs(targetAngle-minAngle)<6&&Math.abs(targetAngle-hourAngle)<6)
             {
-                this.minArrowObj.angle = 0;
-                this.hourArrowObj.angle = 0;
+                this.minArrowObj.angle = 90;
+                this.hourArrowObj.angle = 90;
     
                 this.preHourAngle = this.hourArrowObj.angle;
                 this.preMinAngle = this.minArrowObj.angle;
-
+    
                 this.isCompleteCorrect = true;
-                
-                this.sumMinDeltaAngle = 0;
-                this.sumHourDeltaAngle = 0;
-            
-                this.clocklabel.string = "12 : 00";
-                TipCon._instance.showTip("时间正确，继续修�?);
-                this.showNextTipClock();
+                TipCon._instance.showTip("yes,调整完成，请按照提示炒作");
+                this.titlelabel.string = this.titleConfigs[this.timeConfigIndex+1];
             }
             else
             {
-                TipCon._instance.showTip("不对，再试试�?);
+                TipCon._instance.showTip("不对，再试试！");
             }
         }
         else
         {
-            this.checkTimeClock();
+            this.checkTimeOclock();
         }
     },
-    showNextTipClock()
-    {
-        if( this.timeConfigIndex == this.timesonfig.length)
-        {
-            return;
-        }
-        if(this.timeConfigIndex ==1)
-        {
-            this.hideAction = cc.rotateTo(1,-180);
-            this.tipSpriteObj.runAction(
-                this.hideAction,
-             );
-        }
-        else
-        {
-            this.hideAction = cc.scaleTo(0.2, 1, 0);
-            this.tipSpriteObj.runAction(cc.sequence(
-                this.hideAction,
-                cc.callFunc(this.hideCompeleted.bind(this))
-            ));
-        }
-       
-    },
-    hideCompeleted()
-    {
-        this.tipSpriteObj.angle = 0;
-        this.tipSpriteObj.getComponent(cc.Sprite).spriteFrame = this.tipClockSpriteFrame[this.timeConfigIndex+1];
-
-        this.showAction = cc.scaleTo(0.3, 1, 1);
-        this.tipSpriteObj.runAction(this.showAction);
-    },
-    checkTimeClock()
+    checkTimeOclock()
     {
         var minAngle = (this.minArrowObj.angle%360+360)%360;
         var hourAngle = (this.hourArrowObj.angle%360+360)%360;
@@ -278,7 +182,7 @@ cc.Class({
         console.log("minTargetAngle is " + minTargetAngle);
         console.log("hourTargetAngle is " + hourTargetAngle);
         
-        if(Math.abs(minTargetAngle-minAngle)<this.errorRange &&(Math.abs(hourTargetAngle-hourAngle)<this.errorRange || Math.abs(hourTargetAngle+360-hourAngle)<this.errorRange))
+        if(Math.abs(minTargetAngle-minAngle)<6 &&(Math.abs(hourTargetAngle-hourAngle)<6 || Math.abs(hourTargetAngle+360-hourAngle)<6))
         {
             this.minArrowObj.angle =  this.timesonfig[this.timeConfigIndex].minTargetAngle;
             this.hourArrowObj.angle = this.timesonfig[this.timeConfigIndex].hourTargetAngle;
@@ -287,27 +191,22 @@ cc.Class({
             this.preMinAngle = this.minArrowObj.angle;
 
             var timeName= this.timesonfig[this.timeConfigIndex].corName;
-           
+            TipCon._instance.showTip("恭喜你！你成功调整到 : "+ timeName);
+
             this.timeConfigIndex = this.timeConfigIndex +1 ;
-            console.log(" this.timeConfigIndex is caled " +  this.timeConfigIndex);
+            this.titlelabel.string = this.titleConfigs[this.timeConfigIndex+1];
 
-            if(this.timeConfigIndex != this.timesonfig.length)
-            {
-                TipCon._instance.showTip("时间正确，继续修�?);
-            }
-
-            this.clocklabel.string = timeName;
-
-            this.showNextTipClock();
             if( this.timeConfigIndex == this.timesonfig.length)
             {
+                this.titlelabel.string = this.titleConfigs[this.timeConfigIndex+1];
                 this.checkBtn.active = false;
+
                 this.coporateCompelted();
             }
         }
         else
         {
-            TipCon._instance.showTip("不对，再试试�?);
+            TipCon._instance.showTip("不对，再试试！");
         }
     },
     showTipClick()
@@ -320,10 +219,9 @@ cc.Class({
             }
             else
             {
-                TipCon._instance.showTip("此处暂无提示");
+                TipCon._instance.showTip("此处没有提示哦！");
             }
         }
     },
 
 });
-

@@ -22,4 +22,3 @@ cc.Class({
         this.selectSpirteObj.active = false;
     }
 });
-

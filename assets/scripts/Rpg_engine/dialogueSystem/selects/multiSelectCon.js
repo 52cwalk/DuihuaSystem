@@ -24,32 +24,32 @@ cc.Class({
 
             this.selectParent.addChild( selectObj);
             selectObj.getComponent("answerSelectItem").initEle(this.selectConfigData[i]);
-            selectObj.getComponent("answerSelectItem").setInputCon(this.node,i+1);
+            selectObj.getComponent("answerSelectItem").setInputCon(this.node);
         }
     },
     setSelectConfig(cdata)
     {
         this.selectConfigData = cdata;
         this.createselectItems();
-        
-		
-		
+        // "multiChoicesData": {
+		// 	"questionContent": "海关监管环境",
+		// 	"subRelationContents": [{
     },
-    setNextItem(nextid,branchNo)
+    setNextItem(nextid)
     {
         if(!!this.receiveSelectResultEvent)
         {
-            this.receiveSelectResultEvent(nextid,branchNo);
+            this.receiveSelectResultEvent(nextid);
         }
-        console.log("you have select next id is " + nextid +" branchNo " + branchNo) ;
+        console.log("you have select next id is " + nextid);
     },
     destoryPreSelects()
     {
         for(var i = 0;i!=this.selectItems.length;i++)
         {
-            if(!!this.selectItems[i])
+            if(!this.selectItems[i])
             {
-                this.selectItems[i].destroy();
+                destroy(this.selectItems[i]);
             }
         }
         this.selectItems = [];
@@ -57,4 +57,3 @@ cc.Class({
 
 
 });
-

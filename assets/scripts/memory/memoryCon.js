@@ -1,6 +1,6 @@
 var global = require("globalSetting");
 var dialogueSystem = require("dialogueSystem");
-var storage_con  = require("storage_con");
+
 cc.Class({
     extends: cc.Component,
     properties: {
@@ -10,16 +10,6 @@ cc.Class({
         memoryContainerArr:[cc.Node],
         jsonData:cc.JsonAsset,
         detailInfoPanelObj:cc.Node
-    },
-    onLoad()
-    {
-        this.actorNewStatus={
-            "1000":false,
-            "1001":false,
-            "1002":false,
-            "1003":false,
-            "1004":false
-        }
     },
     start () {
         this.initConfig();
@@ -32,48 +22,26 @@ cc.Class({
         }
 
         this.currentContainerArr = null;
-        if(this.memoryContainerArr.length>0) 
+        if(this.memoryContainerArr.length>0)
         {
             this.currentContainerArr = this.memoryContainerArr[0];
         }
 
         this.currentSelectMemoryIndex = 0;
-        
     },
     initConfig()
     {
         this.configData = (this.jsonData.json);
         for(var i = 0;i!=this.configData.length;i++)
         {
-            
+            //console.log(this.configData[i].bagId);
         }
-    },
-    checkIfSawAllBags()
-    {
-        for(var i = 0;i!=this.configData.length;i++)
-        {
-            var bagv= storage_con._instance.getReward(this.configData[i].bagId);
-            if(parseInt(bagv)  == 1)
-            {
-                storage_con._instance.setNewBagReward(true);
-                return ;
-            }
-        }
-        var isShowNewZhongchou = storage_con._instance.getNewZhongchouMark();
-        if(!isShowNewZhongchou)
-        {
-            storage_con._instance.setNewBagReward(true);
-            return;
-        }
-        storage_con._instance.setNewBagReward(false);
     },
     initEle()
     {
         for(var i=0;i!=this.actorItemArr.length;i++)
         {
-            this.actorItemArr[i].getComponent("memoryActorItem").setEvent((obj,id)=>{
-                this.selectMemoryActor(obj,id);
-            });
+            this.actorItemArr[i].getComponent("memoryActorItem").setMemoryCon(this.node);
         }
 
         for(var i = 0;i!=this.configData.length;i++)
@@ -84,22 +52,17 @@ cc.Class({
             
             var memoryitemobj = cc.instantiate(this.memoryItemPrefabObj);
             memoryitemobj.parent = this.memoryContainerArr[index];
-            memoryitemobj.getComponent("memoryItem").setMemoryCon(this.node);
             memoryitemobj.getComponent("memoryItem").initItem(this.configData[i]);
+            memoryitemobj.getComponent("memoryItem").setMemoryCon(this.node);
         }
 
-        var isShowNewZhongchou = storage_con._instance.getNewZhongchouMark();
-        if(!isShowNewZhongchou)
-        {
-            this.activeActorNewStatus("1000");
-        }
-
-        
-        
-        
-        
-        
-        
+        // var actorDic = {
+        //     "1000":"公共",
+        //     "1001":"周棋洛",
+        //     "1002":"李泽言",
+        //     "1003":"白起",
+        //     "1004":"许墨"
+        // }
         
     },
     selectMemoryActor(obj,id)
@@ -121,39 +84,9 @@ cc.Class({
         
         this.actorId = id;
     },
-    selectMemoryItem(cfg,sf)
+    selectMemoryItem(cfg)
     {
-        this.detailInfoPanelObj.getComponent("memoryDetailCon").show(cfg,sf);  
-    },
-    activeActorNewStatus(actorid)
-    {
-        this.actorNewStatus[actorid] = true;
-        var index = parseInt(actorid)%1000;
-        this.actorItemArr[index].getComponent("memoryActorItem").setNewSpriteStatus(true);
-    },
-    checkActorNewStatus(actorid)
-    {
-        this.actorNewStatus[actorid] = true;
-        for(var i = 0;i!=this.configData.length;i++)
-        {
-            if(actorid == this.configData[i].bagActor)
-            {
-                var bagv= storage_con._instance.getReward(this.configData[i].bagId);
-                if(bagv==1)
-                {
-                    return;
-                }
-            }
-        }
-        if(actorid == "1000")
-        {
-            var isShowNewZhongchou = storage_con._instance.getNewZhongchouMark();
-            if(!isShowNewZhongchou)
-            {
-                return;
-            }
-        }
-        this.currentActiveNode.getComponent("memoryActorItem").setNewSpriteStatus(false);
+      this.detailInfoPanelObj.getComponent("memoryDetailCon").show(cfg);  
     },
     cancelClick()
     {
@@ -161,8 +94,16 @@ cc.Class({
     },
     backToHome()
     {
-        this.checkIfSawAllBags();
-        gotoScene("home");
+        if( global.isFromDialogueToMemory )
+        {
+            global.isRecoverLastNode= true;
+            global.isFromDialogueToMemory = false;
+            cc.director.loadScene("dialogue");
+        }
+        else
+        {
+            cc.director.loadScene("home");
+        }
+        
     }
 });
-

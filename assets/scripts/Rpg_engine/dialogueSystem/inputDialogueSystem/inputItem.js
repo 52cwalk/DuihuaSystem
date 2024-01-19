@@ -5,10 +5,10 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        showText:cc.Label,
+        showText:cc.Label
     },
-    
-    
+    // LIFE-CYCLE CALLBACKS:
+    // onLoad () {},
     start () {
         this.fullContent = "";
         this.targetContent = ""
@@ -16,18 +16,14 @@ cc.Class({
     setInputCon(obj)
     {
         this.inputCon = obj;
-        
     },
     inputEnter()
     {
-        
-        
-        
-        
-        
-        this.node.getComponent(cc.EditBox).string =  this.fullContent ;
-        console.log("current input name is " + this.name +" current content is  " + this.fullContent);
-        
+        // var df = this.inputCon.getComponent("inputDialogueCon").getInputedContent();
+        // if(!!df)
+        // {
+        //     this.node.getComponent(cc.EditBox).string = df;
+        // }
     },
     inputEditDone()
     {
@@ -45,13 +41,12 @@ cc.Class({
     setFullContent(fullStr)
     {
         this.fullContent = fullStr;
-      
+        this.node.getComponent(cc.EditBox).string =  this.fullContent ;
     },
     setTargetContent(targetStr)
     {
         this.targetContent = targetStr;
         this.showText.string = this.targetContent;
     }
-    
+    // update (dt) {},
 });
-

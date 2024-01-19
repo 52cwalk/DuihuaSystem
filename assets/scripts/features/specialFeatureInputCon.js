@@ -8,9 +8,8 @@ cc.Class({
         badgeObj:cc.Node
     },
     start () {
-        
         console.log("  global.specailInputId  is " +  global.specailInputId );
-        if( global.specailInputId =="直到遇见�?)
+        if( global.specailInputId =="直到遇见你")
         {
             this.stickerObj.active = true;
         }
@@ -20,4 +19,3 @@ cc.Class({
         }
     }
 });
-

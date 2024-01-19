@@ -13,8 +13,8 @@ cc.Class({
         this.poseId = "";
         this.shipingId = "";
 
-        this.spinConfigData =this.spinConfigText.json;
-      
+        this.spinConfigData =this.spinConfigText.json;// JSON.parse(this.spinConfigText.text);
+      //  console.log(this.spinConfigData);
     },
     bodyEdit(str,obj)
     {
@@ -37,13 +37,27 @@ cc.Class({
     {
         this.shipingId = str;
     },
-    setLieItemConfig(bodyid = null)
+    setLieItemConfig(bodyid = null,eyeid = null,mouthid = null,poseid = null,shipingid = null)
     {
         this.bodyId = bodyid;
+        this.eyeId = eyeid;
+        this.mouthId = mouthid;
+        this.poseId = poseid;
+        this.shipingId = shipingid;
     },
     loadItem()
     {
-        this.animItemObj.getComponent("anim_item").loadItem(this.bodyId);
+        var bodydata = this.findItemDataBySliceId(this.bodyId);
+
+        var eyedata = this.findItemDataBySliceId(this.eyeId);
+
+        var mouthdata = this.findItemDataBySliceId(this.mouthId);
+
+        var posedata = this.findItemDataBySliceId(this.poseId);
+
+        var shipingdata = this.findItemDataBySliceId(this.shipingId);
+
+        this.animItemObj.getComponent("anim_item").loadItem(bodydata,eyedata,mouthdata,posedata,shipingdata);
     },
     close()
     {
@@ -63,9 +77,8 @@ cc.Class({
     },
     backToHome()
     {
-        gotoScene("home");
+        cc.director.loadScene("home");
     }
 
 
 });
-

@@ -1,9 +1,6 @@
 var global = require("globalSetting");
 var storage_con  = require("storage_con");
 var webApi  = require("webApi");
-var TipCon =require("TipCon") ;
-var musicCon = require("musicCon");
-var dialogueLoadingCon = require("dialogueLoadingCon");
 
 cc.Class({
     extends: cc.Component,
@@ -18,63 +15,29 @@ cc.Class({
        yearEditBox:cc.EditBox,
        mouthEditBox:cc.EditBox,
        dayEditBox:cc.EditBox,
-       userInfoConObj:cc.Node,
-       progressConObj:cc.Node,
-       newArchieventSpriteTipObj:cc.Node,
-       newBagSpriteTipObj:cc.Node
-    },
-    onLoad()
-    {
-       
+
+       topNicknameLabel:cc.Label,
+       userInfoConObj:cc.Node
     },
     start () {
         this.initApp();
-        
-        
-     
-        
-        
-        
-        
+        this.initChapterProgress();
     },
-    
     gotoClock()
     {
-        gotoScene("clock");
+        cc.director.loadScene("clock");
     },
     gotoMaze()
     {
-        gotoScene("maze");
+        cc.director.loadScene("maze");
     },
     gotoSticker()
     {
-        gotoScene("sticker");
+        cc.director.loadScene("sticker");
     },
     gotoLie()
     {
-        gotoScene("lietest");
-    },
-    gotoFirstChapter()
-    {
-        if (typeof wx != 'undefined') {
-            if(!global.activecode)
-            {
-                this.showActiveCodePanel();
-                return;
-            }
-            else
-            {
-                global.selectActorId = 1000 
-                global.selectChapterId == 2001;
-                gotoScene("dialogue");
-            }
-        }
-        else
-        {
-            global.selectActorId = 1000 
-            global.selectChapterId == 2001;
-            gotoScene("dialogue");
-        }
+        cc.director.loadScene("lietest");
     },
     gotoDialogue()
     {
@@ -84,96 +47,133 @@ cc.Class({
                 this.showActiveCodePanel();
                 return;
             }
-            if(!!global.userBaseInfo.userNickName)
+            if(!!global.userBaseInfo.userNickName)//如果用户名不为空
             {
-                
-                
+                // global.selectActorId = 1000;
+                // global.selectChapterId = 2001;
                 if(global.selectActorId == 1000 && global.selectChapterId == 2002)
                 {
                     console.log( " global.selectActorId is  001 ");
-                    gotoScene("dialogue");
+                    cc.director.loadScene("dialogue");
                 }
                 else
                 {
                     console.log( " global.selectActorId is  002 ");
                     global.isRecoverLastNode= true;
-                    gotoScene("dialogue");
+                    cc.director.loadScene("dialogue");
                 }
             }
             else
             {
-                
+                //弹出用户名设置页面
                 this.initUserInfoPanelObj.active = true;
             }
         }
         else
         {
-            if(!!global.userBaseInfo.userNickName)
+            if(!!global.userBaseInfo.userNickName)//如果用户名不为空
             {
-                
-                
+                // global.selectActorId = 1000;
+                // global.selectChapterId = 2001;
                 console.log( " global.selectActorId is  " + global.selectActorId + " global.selectChapterId " + global.selectChapterId );
                 if(global.selectActorId == 1000 && global.selectChapterId == 2002)
                 {
                     console.log( " global.selectActorId is  001 ");
-                    gotoScene("dialogue");
+                    cc.director.loadScene("dialogue");
                 }
                 else
                 {
                     console.log( " global.selectActorId is  002 ");
                     global.isRecoverLastNode= true;
-                    gotoScene("dialogue");
+                    cc.director.loadScene("dialogue");
                 }
             }
             else
             {
-                
+                //弹出用户名设置页面
                 this.initUserInfoPanelObj.active = true;
             }
 
         }
     },
-
-    gotoMemoryBag()
+    gotoArchive()
     {
-        dialogueLoadingCon._instance.show();
-        if(!! this.progressConObj)
-        {
-            this.progressConObj.getComponent("progressCon").saveChapterPos();
-        }
-       
         if (typeof wx != 'undefined') {
             if(!global.activecode)
             {
                 this.showActiveCodePanel();
                 return;
             }
-            gotoScene("memory_bag");
+            cc.director.loadScene("archive");   
         }
         else
         {
-            gotoScene("memory_bag");
+            cc.director.loadScene("archive");
+        }
+    },
+    gotoMemoryBag()
+    {
+        if (typeof wx != 'undefined') {
+            if(!global.activecode)
+            {
+                this.showActiveCodePanel();
+                return;
+            }
+            cc.director.loadScene("memory_bag");   
+        }
+        else
+        {
+            cc.director.loadScene("memory_bag");
         }
     },
     gotoMemoryArchievement()
     {
-        dialogueLoadingCon._instance.show();
-        if(!! this.progressConObj)
-        {
-            this.progressConObj.getComponent("progressCon").saveChapterPos();
-        }
-        
         if (typeof wx != 'undefined') {
             if(!global.activecode)
             {
                 this.showActiveCodePanel();
                 return;
             }
-            gotoScene("memory_achievement");   
+            cc.director.loadScene("memory_achievement");   
         }
         else
         {
-            gotoScene("memory_achievement");
+            cc.director.loadScene("memory_achievement");
+        }
+    },
+    initChapterProgress()
+    {
+        var finishobj= storage_con._instance.getFinishedConfig();
+        console.log("首页 finishobj is ");
+        console.log(finishobj);
+        global.finishActorList = finishobj;
+
+        var lastestConfig = storage_con._instance.getLastestNodeConfig();
+        console.log("the store last config is ");
+        console.log(storage_con._instance.getLastestNodeConfig());
+
+        if(!!lastestConfig && !!lastestConfig.currentNodeId)//表示可以根据历史记录节点恢复
+        {
+            console.log("initChapterProgress 001  ");
+            global.selectActorId = parseInt(lastestConfig.actor);
+            global.selectChapterId = parseInt( lastestConfig.chapter);
+        }
+        else
+        {
+            if(global.getFinishActorCount()>0)//选择男主四选一
+            {
+                console.log("initChapterProgress 002 ");
+                global.selectActorId = 1000;
+                global.selectChapterId = 2002;
+            }
+            else
+            {
+                console.log("initChapterProgress 003  ");
+                //默认没有任何进度，从公共部分开始
+                global.selectActorId = 1000;
+                global.selectChapterId = 2001;
+            }
+            
         }
     },
     initApp()
@@ -183,7 +183,7 @@ cc.Class({
         if(!!!activecode)
         {
             if (typeof wx != 'undefined') {
-                this.showActiveCodePanel();
+                this.showActiveCodePanel();//显示激活界面
                 this.initLocalInfoFromServer();
             }
             else
@@ -192,48 +192,27 @@ cc.Class({
             }
         }
         else{
-            console.log("initApp is called 02 !");
+            console.log("initApp is called 02 !")
             global.activecode = activecode;
             this.checkInitialUserInfo();
         }
 
         var localnickname = storage_con._instance.getUserNickName();
         var localbirthday =  storage_con._instance.getBirthdayDay();
-
+  
+        global.historyPlotDic = [];//清空记录
         console.log("昵称 为：" + localnickname);
         console.log("生日 为：" + localbirthday);
-
-        global.dialogueRewardDic ={};
-        
+       
         if(!!localnickname && !!localbirthday)
         {
             global.userBaseInfo.userNickName = localnickname;
             global.userBaseInfo.birthday = localbirthday;
-            
+            this.topNicknameLabel.string = localnickname;
+
             this.userInfoConObj.getComponent("userInfoPanelCon").updateUserBaseInfo(localnickname,localbirthday);
         }
-
-        var ishavenewArchevement = storage_con._instance.getNewAchievementReward();
-        if(!!ishavenewArchevement)
-        {
-            this.newArchieventSpriteTipObj.active = true;
-        }
-
-        var ishavenewbag = storage_con._instance.getNewBagReward();
-        console.log("ishavenewbag is ");
-        console.log(ishavenewbag);
-        if(!!ishavenewbag)
-        {
-            this.newBagSpriteTipObj.active = true;
-        }
-        else
-        {
-            var isShowNewZhongchou = storage_con._instance.getNewZhongchouMark();
-            if(!isShowNewZhongchou)
-            {
-                this.newBagSpriteTipObj.active = true;
-            }
-        }
+        global.isFromDialogueToMemory = false;
     },
     initLocalInfoFromServer()
     {
@@ -241,40 +220,29 @@ cc.Class({
             if(rc>0)
             {
                 console.log("initLocalInfoFromServer is called 02 ");
-                if(!!data.activecode)
-                {
-                    global.activecode = data.activecode;
-                    storage_con._instance.saveActiveCode(data.activecode);
-                    this.activePanelObj.active = false;
-                  
-                    if (typeof wx != 'undefined') {
-                        wx.showToast({
-                            title: "激活码验证成功�?
-                        });
-                    }
-                }
+                global.activecode = data.activecode;
+                global.userBaseInfo.userNickName = data.nickname;
+                global.userBaseInfo.birthday = data.birthday;
 
-                if(!!data.nickname && data.birthday)
-                {
-                    global.userBaseInfo.userNickName = data.nickname;
-                    global.userBaseInfo.birthday = data.birthday;
-                    storage_con._instance.saveBirthdayDay(data.birthday);
-                    storage_con._instance.saveUserNickName(data.nickname);
-                    this.userInfoConObj.getComponent("userInfoPanelCon").updateUserBaseInfo( data.nickname, data.birthday);
-                    this.progressConObj.getComponent("progressCon").setGuideActive(true);
-                }
+                this.userInfoConObj.getComponent("userInfoPanelCon").updateUserBaseInfo( data.nickname, data.birthday);
 
-                if(!!data.exchangecode)
-                {
-                    global.exchangecode = data.exchangecode;
-                    storage_con._instance.saveExchangeCode(global.exchangecode);
-                }
+                storage_con._instance.saveActiveCode(code);
+                storage_con._instance.saveBirthdayDay(data.birthday);
+                storage_con._instance.saveUserNickName(data.nickname);
 
+                this.activePanelObj.active = false;
+                
+                if (typeof wx != 'undefined') {
+                    wx.showToast({
+                        title: "激活码验证成功！"
+                    });
+                }
                 this.checkInitialUserInfo();
             }
             else
             {
-                this.showActiveCodePanel();
+                console.log("initApp is called 03");
+                this.showActiveCodePanel();//显示激活界面
             }
         });
 
@@ -323,169 +291,132 @@ cc.Class({
         {
             if (typeof wx != 'undefined') {
                 wx.showToast({
-                    title: "验证码错误！！！",
+                    title: "验证错误！！！",
                     icon:'fail'
                 });
             }
+            console.log("验证码错误 !!!" );
             return;
         }
         else
         {
             wx.showLoading({
-                title: '验证�?..',
+                title: '验证中...',
             });
             var that =this;
-            webApi.activeApp(activeCodeStr,function(rb,exchangecode){
+            webApi.activeApp(activeCodeStr,function(rb){
                 wx.hideLoading();
                 if(rb>0)
                 {
                     global.activecode = activeCodeStr;
-                    global.exchangecode = exchangecode;
                     storage_con._instance.saveActiveCode(activeCodeStr);
-                    storage_con._instance.saveExchangeCode(exchangecode);
-
                     that.activePanelObj.active = false;
                     wx.showToast({
-                        title: "验证成功！！�?
+                        title: "验证成功！！！"
                     });
                     that.checkInitialUserInfo();
                 }
                 else
                 {
                     wx.showToast({
-                        title: "验证失败！！�?,
+                        title: "验证失败！！！",
                         icon:'fail'
                     });
                 }
             });
         }
+        
     },
     userinfoOkBtnClick()
     {
         if(!!!this.nicknameEditBox.string)
         {
-            this.showTip("昵称信息错误，请检查！",-1); 
+            console.log("userinfoOkBtnClick  001 " );
+            console.log(this.nicknameEditBox.string);
+            this.showTip("昵称信息错误，请检查！");
             return;
         }
-
-        var year = this.yearEditBox.string;
-        var mouth = this.mouthEditBox.string;
-        var day = this.dayEditBox.string;
         
-        if(!!!year)
+        if(!!!this.yearEditBox.string)
         {
-            this.showTip("请填写正确年�?,-1);
+            console.log("userinfoOkBtnClick  002");
+            this.showTip("请填写正确的年份");
             return;
         }
         else
         {
-   
+            var year = this.yearEditBox.string;
             if(this.isLetter(year)||year.length!=4)
             {
-                this.showTip("请填写正确年�?,-1);
+                console.log("userinfoOkBtnClick  003");
+                this.showTip("请填写正确的年份");
                 return;
             }
         }
 
-        if(!!!mouth)
+        if(!!!this.mouthEditBox.string)
         {
-            this.showTip("请填写正确月�?,-1);
+            this.showTip("请填写正确的月份");
             return;
         }
         else
         {
-         
-            if(this.isLetter(mouth)||(mouth.length>2)||(mouth.length==0) ||(parseInt(mouth)>12)||(parseInt(mouth)<=0))
+            var mounth = this.mouthEditBox.string;
+            if(this.isLetter(mounth)||mounth.length!=2)
             {
-                this.showTip("请填写正确月�?,-1);
+                this.showTip("请填写正确的月份");
                 return;
             }
-            mouth = mouth.length==1?"0"+mouth:mouth;
         }
 
-        if(!!!day)
+        if(!!!this.dayEditBox.string)
         {
-            this.showTip("请填写正确日�?,-1);
+            this.showTip("请填写正确的日期");
             return;
         }
         else
         {
             var day = this.dayEditBox.string;
-            if(this.isLetter(day)||(day.length>2)||(day.length==0)||(parseInt(day)>31)||(parseInt(day)<=0))
+            if(this.isLetter(day)||day.length!=2)
             {
-                this.showTip("请填写正确日�?,-1);
+                this.showTip("请填写正确的日期");
                 return;
             }
-            day = day.length==1?"0"+day:day;
         }
 
         var nickname =this.nicknameEditBox.string;
-        var birthday = year +mouth+ day;
-        var that = this;
-        if (typeof wx != 'undefined') {
-            webApi.checkContentLawful(nickname,(rb)=>{
-                if( rb=="0")
-                {
-                   
-    
-                    storage_con._instance.saveBirthdayDay(birthday);
-                    storage_con._instance.saveUserNickName(nickname);
-                    global.userBaseInfo.userNickName = nickname;
-                    global.userBaseInfo.birthday = birthday;
-                    this.userInfoConObj.getComponent("userInfoPanelCon").updateUserBaseInfo(nickname,birthday);
-
-                    webApi.udpateNickame(nickname,function(rb){
-                        console.log(rb);
-                    });
-            
-                    webApi.udpateBirthday(birthday,function(rb){
-                        console.log(rb);
-                        if(!! that.progressConObj)
-                        {
-                            that.progressConObj.getComponent("progressCon").setGuideActive(true);
-                        }
-                    });
-
-                 
-                    this.initUserInfoPanelObj.active = false;
-                }
-                else if(rb=="-1")
-                {
-                    this.showTip("无操作权�?,-1);
-                }
-                else
-                {
-                    this.showTip("昵称不规范！",-1);
-                }
-            });
-        }
-        else
-        {
-            storage_con._instance.saveBirthdayDay(birthday);
-            storage_con._instance.saveUserNickName(nickname);
-            global.userBaseInfo.userNickName = nickname;
-            global.userBaseInfo.birthday = birthday;
-            this.userInfoConObj.getComponent("userInfoPanelCon").updateUserBaseInfo(nickname,birthday);
-            this.initUserInfoPanelObj.active = false;
-
-            if(!! this.progressConObj)
-            {
-                this.progressConObj.getComponent("progressCon").setGuideActive(true);
-            }
-        }
+        var birthday = this.yearEditBox.string +this.mouthEditBox.string + this.dayEditBox.string;
+        console.log("nickname is " + nickname);
+        console.log("birthday is " + birthday);
         
-    },
+        storage_con._instance.saveBirthdayDay(birthday);
+        storage_con._instance.saveUserNickName(nickname);
 
+        global.userBaseInfo.userNickName = nickname;
+        global.userBaseInfo.birthday = birthday;
+
+        this.topNicknameLabel.string = nickname;
+        this.initUserInfoPanelObj.active = false;
+
+        this.userInfoConObj.getComponent("userInfoPanelCon").updateUserBaseInfo(nickname,birthday);
+
+        webApi.udpateNickame(nickname,function(rb){
+            console.log(rb);
+        });
+
+        webApi.udpateBirthday(birthday,function(rb){
+                console.log(rb);
+        });
+
+    },
     isLetter(str) {
        return  !(/^\d+$/.test(str));
     },
-    showTip(title,status=1)
+    showTip(title)
     {
         if (typeof wx != 'undefined') {
             wx.showToast({
-                title: title,
-                icon:status>0?'success':'none',
-                duration:2000
+                title: title
             });
         }
         else
@@ -495,4 +426,3 @@ cc.Class({
         }
     }
 });
-

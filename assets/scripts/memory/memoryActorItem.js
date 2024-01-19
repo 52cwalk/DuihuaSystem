@@ -4,44 +4,27 @@ cc.Class({
     properties: {
         actorId:cc.String,
         titleLabel:cc.Label,
-        selectSpirteObj:cc.Node,
-        newSpriteObj:cc.Node
+        selectSpirteObj:cc.Node
     },
     start () {
 
     },
-    setEvent(callback)
+    setMemoryCon(con)
     {
-        if(callback)
-        {
-            this.callback =callback;
-        }
+        this.memoryCon = con;
     },
-    initItem(id,title,callback)
+    initItem(id,title)
     {
         this.actorId = id;
         this.titleLabel.string = title;
-        if(callback)
-        {
-            this.callback =callback;
-        }
     },
     itemClick()
     {
+        this.memoryCon.getComponent("memoryCon").selectMemoryActor(this.node,this.actorId);
         this.selectSpirteObj.active = true;
-        if(this.callback)
-        {
-            this.callback(this.node,this.actorId);
-        }
     },
     unSelect()
     {
         this.selectSpirteObj.active = false;
-    },
-    setNewSpriteStatus(v)
-    {
-        this.newSpriteObj.active = v;
     }
-
 });
-

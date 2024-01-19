@@ -19,4 +19,3 @@ cc.Class({
         console.log("yes, your anim play test is end !");
     }
 });
-

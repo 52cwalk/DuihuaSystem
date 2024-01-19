@@ -8,7 +8,7 @@ cc.Class({
     properties: {
     },
 
-    
+    // LIFE-CYCLE CALLBACKS:
 
      onLoad () {
          this.recoverActiveCodeEvent = null;
@@ -16,11 +16,6 @@ cc.Class({
 
     start () {
       var openid = storage_con._instance.getOpenid();
-      var exchangecode = storage_con._instance.getExchangeCode();
-      if(!!exchangecode)
-      {
-        global.exchangecode = exchangecode;
-      }
         if(!!openid)
         {
              global.openid = openid;
@@ -44,9 +39,15 @@ cc.Class({
         }
 
         if (typeof wx != 'undefined') {
-          
-          
-
+          //  this.getUserBaseInfo();
+          //  this.loadHeadImage();
+/*
+            cc.loader.load({url: info.avatar+'?file=a.jpg'}, function (err, tex) {        
+                console.log("用户信息回来了。！");
+                that.avatarSpirte.spriteFrame=new cc.SpriteFrame(tex)
+            });
+             var hosturl = "http://localhost:3000/uploads\spinball\oamtX44YbvBHgPeqhJOeosjZ_U68\1584014008529.jpg";
+*/
         }
     },
     initEvent(cb)
@@ -55,14 +56,14 @@ cc.Class({
     },
     loadHeadImage()
     {
-        
-        
+        // var info= global.getLocalUserInfo();
+        // var that = this;
 
-        
-        
-        
-        
-        
+        // imageloader.loadImage(info.avatar,function(tex){
+        //     console.log("用户信息回来了。！");
+        //     var spriteFrame1  = new cc.SpriteFrame(tex);
+        //     that.avatarSpirte.spriteFrame = spriteFrame1;
+        // });
     },
     fetchOpenidCallBack(res)
     {
@@ -83,7 +84,7 @@ cc.Class({
     },
     getUserBaseInfo()
     {
-        
+        //获取微信界面大小
         let width = cc.visibleRect.width;
         let height = cc.visibleRect.height;
         var that = this;
@@ -91,21 +92,21 @@ cc.Class({
             success (res) {
                 console.log(res.authSetting);
                 if (res.authSetting["scope.userInfo"]) {
-                    console.log("用户已授�?);
+                    console.log("用户已授权");
                     window.wx.getUserInfo({
                         success(res){
                             console.log(res);
                             var uname =  res.userInfo.nickName;
                             var avatarUrl =  res.userInfo.avatarUrl;
-                            
-                            
-                            
-                            
-                            
+                            // webApi.updateUserInfo(uname,avatarUrl,null);//更新服务器用户信息
+                            // global.setUsename(uname);
+                            // global.setUseravatar(avatarUrl);
+                            // console.log(global.getLocalUserInfo());
+                            //此时可进行登录操作
                         }
                     });
                 }else {
-                    console.log("用户未授�?);
+                    console.log("用户未授权");
                     let button = window.wx.createUserInfoButton({
                         type: 'text',
                         text: '',
@@ -114,7 +115,7 @@ cc.Class({
                             top: 0,
                             width: width,
                             height: height,
-                            backgroundColor: '#00000000',
+                            backgroundColor: '#00000000',//最后两位为透明度
                             color: '#ffffff',
                             fontSize: 20,
                             textAlign: "center",
@@ -126,18 +127,18 @@ cc.Class({
                             var uname =  res.userInfo.nickName;
                             var avatarUrl =  res.userInfo.avatarUrl;
 
+                            // global.setUsename(uname);
+                            // global.setUseravatar(avatarUrl);
                             
-                            
-                            
-                            
+                            // webApi.updateUserInfo(uname,avatarUrl,null);//更新服务器用户信息
 
-                            
+                            //console.log( global.getLocalUserInfo());
 
                             that.loadHeadImage();
 
                             console.log("用户授权:", res);
-                            
-                            
+                            //global.setUserInfo(res.userInfo);
+                            //此时可进行登录操作
                             button.destroy();
                         }else {
                             console.log("用户拒绝授权:", res);
@@ -147,6 +148,5 @@ cc.Class({
             }
         })
     }
-    
+    // update (dt) {},
 });
-

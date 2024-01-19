@@ -1,10 +1,8 @@
-var global = require("globalSetting");
 
 var bgSwitchCon = cc.Class({
     extends: cc.Component,
     properties: {
         targetMaskObj:cc.Node,
-        hideMaskObj:cc.Node,
         bgNodeObj:cc.Node,
         currentBgId:null
     },
@@ -18,13 +16,10 @@ var bgSwitchCon = cc.Class({
     },
     start () {
         this.currentBgId = null;
-        this.preBgId = null;
         this.isAtCenter = false;
-        this.hideMaskObj.active = false;
-
-  
-   
-    
+  //      this.paths=["bg01","bg02"];
+   //     this.pIndex = 0;
+    //   this.startChange();
     },
     startChange()
     {
@@ -48,14 +43,10 @@ var bgSwitchCon = cc.Class({
 
         this.targetMaskObj.runAction(cc.sequence(moveOut,moveOutEnd));
     },
-    checkIfNeedSwitch(id)
-    {
-        return id != this.currentBgId;
-    },
     changeBg(bgid,func=null)
     {
-      
-     
+      //  console.log("this.currentBgId is  " + this.currentBgId);
+     //   console.log("bgid is " + bgid);
         
         if(this.currentBgId == bgid)
         {
@@ -66,24 +57,20 @@ var bgSwitchCon = cc.Class({
             return;
         }
 
-        
         if(!!bgid&&!!!this.currentBgId)
         {
+            console.log("sdf")
             this.changeSprite(bgid,(v)=>{
                 this.isLoadOver = true;
                 this.bgNodeObj.getComponent(cc.Sprite).spriteFrame = this.bgSpriteFrame ;
                 func(v);
             });
-            this.hideMaskObj.active = false;
-            this.currentBgId = bgid;
-            if(!!!global.dialogueBgDic)
-            {
-                global.dialogueBgDic = {};
-            }
             
-            global.dialogueBgDic[this.currentBgId] = true;
+            this.currentBgId = bgid;
             return;
         }
+
+        this.currentBgId = bgid;
 
         this.isLoadOver = false;
 
@@ -91,7 +78,6 @@ var bgSwitchCon = cc.Class({
         var moveTo = cc.moveTo(0.6, cc.v2(0, 0));
         
         var moveOut = cc.moveTo(0.6, cc.v2(1300, 0));
-        this.preBgId =   this.currentBgId ;
 
         let moveOutEnd = cc.callFunc(() => {
             if(!!func)
@@ -99,7 +85,6 @@ var bgSwitchCon = cc.Class({
                 this.isAtCenter = false;
                 func(1);
             }
-            this.hideMaskObj.active = false;
         }, this);
 
         this.changeSprite(bgid,(v)=>{
@@ -112,7 +97,7 @@ var bgSwitchCon = cc.Class({
         });
 
         let moveCenterEnd = cc.callFunc(() => {
-            this.isAtCenter = true;
+            this.isAtCenter = true;//在中间了
             if(this.isLoadOver)
             {
                 this.bgNodeObj.getComponent(cc.Sprite).spriteFrame = this.bgSpriteFrame ;
@@ -121,9 +106,6 @@ var bgSwitchCon = cc.Class({
         }, this);
 
         this.targetMaskObj.runAction(cc.sequence(moveTo,moveCenterEnd));
-        
-        this.currentBgId = bgid;
-        global.dialogueBgDic[this.currentBgId] = true;
     },
     loadBgDirectWithOutAnim(bgid,func)
     {
@@ -152,16 +134,37 @@ var bgSwitchCon = cc.Class({
                 return;
             }
             that.bgSpriteFrame = ret;
+          
             if(!!func)
             {
                 func(1);
             }
-          
+          //  this.sprite.spriteFrame = cc.loader.getRes("img/disk", cc.SpriteFrame);
         }.bind(this));
     }
-    
+    /*
+    changeSprite(id,func=null)
+    {
+        var that = this;
+        cc.loader.loadRes("bgs/"+id, cc.SpriteFrame, function(err, ret) {
+            if (err) {
+                console.log(err);
+                if(!!func)
+                {
+                    func(-1);
+                }
+                return;
+            }
+            that.bgNodeObj.getComponent(cc.Sprite).spriteFrame = ret;
+            if(!!func)
+            {
+                func(1);
+            }
+          //  this.sprite.spriteFrame = cc.loader.getRes("img/disk", cc.SpriteFrame);
+        }.bind(this));
+    }
+    */
 
 });
 
 module.exports = bgSwitchCon
-
